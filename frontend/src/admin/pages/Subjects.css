@@ -1,0 +1,72 @@
+.subjects-page{
+    background:white;
+    padding:30px;
+    border-radius:12px;
+}
+
+.subjects-header{
+    display:flex;
+    justify-content:space-between;
+    align-items:center;
+    margin-bottom:25px;
+}
+
+.subjects-header h1{
+    margin:0;
+}
+
+.subjects-header p{
+    color:#64748b;
+}
+
+.add-btn{
+    background:#2563eb;
+    color:white;
+    border:none;
+    padding:12px 18px;
+    border-radius:8px;
+    cursor:pointer;
+}
+
+.search-box{
+    width:320px;
+    padding:12px;
+    border:1px solid #ddd;
+    border-radius:8px;
+    margin-bottom:20px;
+}
+
+.subjects-table{
+    width:100%;
+    border-collapse:collapse;
+}
+
+.subjects-table th,
+.subjects-table td{
+    padding:16px;
+    border-bottom:1px solid #eee;
+}
+
+.subjects-table th{
+    text-align:left;
+    background:#f8fafc;
+}
+
+.edit-btn{
+    background:#f59e0b;
+    color:white;
+    border:none;
+    padding:8px 14px;
+    border-radius:6px;
+    margin-right:10px;
+    cursor:pointer;
+}
+
+.delete-btn{
+    background:#ef4444;
+    color:white;
+    border:none;
+    padding:8px 14px;
+    border-radius:6px;
+    cursor:pointer;
+}

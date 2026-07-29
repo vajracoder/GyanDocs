@@ -1,0 +1,68 @@
+[
+  {
+    "id": "sub-01",
+    "slug": "operating-systems",
+    "name": "Operating Systems",
+    "code": "OS",
+    "description": "Process management, synchronization, deadlocks, memory and file systems.",
+    "icon": "OS",
+    "accent": "#2F5FFF",
+    "unitsCount": 5,
+    "questionsCount": 24
+  },
+  {
+    "id": "sub-02",
+    "slug": "database-management-systems",
+    "name": "Database Management Systems",
+    "code": "DBMS",
+    "description": "ER modeling, SQL, normalization, transactions and indexing.",
+    "icon": "DB",
+    "accent": "#16A34A",
+    "unitsCount": 5,
+    "questionsCount": 14
+  },
+  {
+    "id": "sub-03",
+    "slug": "computer-organization-architecture",
+    "name": "Computer Organization & Architecture",
+    "code": "COA",
+    "description": "CPU design, instruction sets, memory hierarchy and pipelining.",
+    "icon": "CO",
+    "accent": "#F5A623",
+    "unitsCount": 5,
+    "questionsCount": 11
+  },
+  {
+    "id": "sub-04",
+    "slug": "compiler-design",
+    "name": "Compiler Design",
+    "code": "CD",
+    "description": "Lexical analysis, parsing, syntax-directed translation and code generation.",
+    "icon": "CD",
+    "accent": "#8B5CF6",
+    "unitsCount": 5,
+    "questionsCount": 11
+  },
+  {
+    "id": "sub-05",
+    "slug": "python-programming",
+    "name": "Python Programming",
+    "code": "PY",
+    "description": "Core syntax, functions, data structures, OOP and file handling in Python.",
+    "icon": "PY",
+    "accent": "#2F5FFF",
+    "unitsCount": 5,
+    "questionsCount": 16
+  },
+  {
+    "id": "sub-06",
+    "slug": "computer-networks",
+    "name": "Computer Networks",
+    "code": "CN",
+    "description": "OSI/TCP-IP model, routing, transport protocols and application layer services.",
+    "icon": "CN",
+    "accent": "#16A34A",
+    "unitsCount": 5,
+    "questionsCount": 11
+  }
+]

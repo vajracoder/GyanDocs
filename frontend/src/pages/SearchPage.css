@@ -1,0 +1,112 @@
+.ev-search-page {
+  min-height: calc(100vh - var(--header-height) - 300px);
+  display: flex;
+  align-items: center;
+  padding-block: var(--sp-16);
+}
+
+.ev-search-page__inner {
+  max-width: 720px;
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  text-align: center;
+  gap: var(--sp-4);
+}
+
+.ev-search-page__title {
+  font-size: var(--fs-3xl);
+}
+
+.ev-search-page__subtitle {
+  color: var(--muted);
+  font-size: var(--fs-md);
+  max-width: 480px;
+}
+
+.ev-search-page__bar {
+  width: 100%;
+  margin-top: var(--sp-4);
+}
+
+.ev-search-page__trending,
+.ev-search-page__subjects {
+  width: 100%;
+  margin-top: var(--sp-8);
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  gap: var(--sp-3);
+}
+
+.ev-search-page__trending-label {
+  font-size: var(--fs-xs);
+  letter-spacing: 0.06em;
+  text-transform: uppercase;
+  color: var(--muted);
+}
+
+.ev-search-page__chips {
+  display: flex;
+  flex-wrap: wrap;
+  justify-content: center;
+  gap: var(--sp-2);
+}
+
+.ev-search-page__chip {
+  background: var(--surface);
+  border: 1px solid var(--border);
+  border-radius: var(--radius-full);
+  padding: var(--sp-2) var(--sp-4);
+  font-size: var(--fs-sm);
+  color: var(--ink-soft);
+  transition: border-color var(--t-fast) var(--ease), color var(--t-fast) var(--ease), background var(--t-fast) var(--ease);
+}
+
+.ev-search-page__chip:hover {
+  border-color: var(--accent);
+  color: var(--accent-ink);
+  background: var(--accent-soft);
+}
+
+.ev-search-page__subject-grid {
+  display: grid;
+  grid-template-columns: repeat(3, 1fr);
+  gap: var(--sp-3);
+  width: 100%;
+}
+
+.ev-search-page__subject {
+  display: flex;
+  align-items: center;
+  gap: var(--sp-2);
+  background: var(--surface);
+  border: 1px solid var(--border);
+  border-radius: var(--radius-md);
+  padding: var(--sp-3) var(--sp-4);
+  font-size: var(--fs-sm);
+  font-weight: 500;
+  color: var(--ink-soft);
+  text-align: left;
+  transition: border-color var(--t-fast) var(--ease), transform var(--t-fast) var(--ease);
+}
+
+.ev-search-page__subject:hover {
+  border-color: var(--accent);
+  color: var(--ink);
+  transform: translateY(-1px);
+}
+
+.ev-search-page__subject-code {
+  font-weight: 700;
+  font-size: var(--fs-xs);
+}
+
+@media (max-width: 640px) {
+  .ev-search-page__title {
+    font-size: var(--fs-2xl);
+  }
+  .ev-search-page__subject-grid {
+    grid-template-columns: 1fr;
+  }
+}

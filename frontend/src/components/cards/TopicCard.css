@@ -1,0 +1,5 @@
+.ev-topic-card { display: flex; align-items: center; gap: var(--sp-4); padding: var(--sp-4) var(--sp-5); }
+.ev-topic-card__name { flex: 1; font-weight: 600; color: var(--ink); }
+.ev-topic-card__count { font-size: var(--fs-xs); color: var(--muted); flex-shrink: 0; }
+.ev-topic-card__arrow { flex-shrink: 0; color: var(--border-strong); transition: color var(--t-fast) var(--ease), transform var(--t-fast) var(--ease); }
+.ev-topic-card:hover .ev-topic-card__arrow { color: var(--accent); transform: translateX(3px); }

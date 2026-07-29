@@ -1,0 +1,11 @@
+.ev-freq { display: inline-flex; align-items: center; gap: var(--sp-2); }
+.ev-freq__bars { display: flex; align-items: flex-end; gap: 2px; height: 18px; }
+.ev-freq--sm .ev-freq__bars { height: 14px; }
+.ev-freq--lg .ev-freq__bars { height: 26px; }
+.ev-freq__bar { width: 3px; border-radius: 1px; background: var(--border); }
+.ev-freq--lg .ev-freq__bar { width: 4px; }
+.ev-freq__bar--filled { background: var(--border-strong); }
+.ev-freq__bars--medium .ev-freq__bar--filled { background: var(--amber); }
+.ev-freq__bars--high .ev-freq__bar--filled { background: var(--accent); }
+.ev-freq__label { font-size: var(--fs-xs); color: var(--muted); white-space: nowrap; }
+.ev-freq--lg .ev-freq__label { font-size: var(--fs-sm); }

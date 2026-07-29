@@ -1,0 +1,110 @@
+.ev-footer {
+  border-top: 1px solid var(--border);
+  background: var(--surface);
+  margin-top: var(--sp-20);
+}
+
+.ev-footer__inner {
+  display: grid;
+  grid-template-columns: 2fr 1fr 1fr 1fr;
+  gap: var(--sp-8);
+  padding-block: var(--sp-16);
+}
+
+.ev-footer__brand {
+  display: flex;
+  flex-direction: column;
+  gap: var(--sp-3);
+  max-width: 320px;
+}
+
+.ev-footer__logo {
+  display: flex;
+  align-items: center;
+  gap: var(--sp-2);
+  font-family: var(--font-display);
+  font-weight: 700;
+  font-size: var(--fs-md);
+  color: var(--ink);
+}
+
+.ev-footer__mark {
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  width: 28px;
+  height: 28px;
+  border-radius: var(--radius-sm);
+  background: var(--accent);
+  color: #fff;
+  font-family: var(--font-mono);
+  font-size: 11px;
+  font-weight: 700;
+}
+
+.ev-footer__tagline {
+  font-size: var(--fs-sm);
+  color: var(--muted);
+  line-height: 1.6;
+}
+
+.ev-footer__heading {
+  font-family: var(--font-mono);
+  font-size: var(--fs-xs);
+  letter-spacing: 0.06em;
+  text-transform: uppercase;
+  color: var(--muted);
+  margin-bottom: var(--sp-4);
+}
+
+.ev-footer__list {
+  display: flex;
+  flex-direction: column;
+  gap: var(--sp-3);
+}
+
+.ev-footer__list a {
+  font-size: var(--fs-sm);
+  color: var(--ink-soft);
+  transition: color var(--t-fast) var(--ease);
+}
+
+.ev-footer__list a:hover {
+  color: var(--accent);
+}
+
+.ev-footer__soon {
+  font-size: var(--fs-sm);
+  color: var(--border-strong);
+  cursor: default;
+}
+
+.ev-footer__bottom {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: var(--sp-4);
+  padding-block: var(--sp-6);
+  border-top: 1px solid var(--border);
+  font-size: var(--fs-xs);
+  color: var(--muted);
+}
+
+.ev-footer__note {
+  font-family: var(--font-mono);
+}
+
+@media (max-width: 768px) {
+  .ev-footer__inner {
+    grid-template-columns: 1fr 1fr;
+  }
+  .ev-footer__brand {
+    grid-column: 1 / -1;
+    max-width: none;
+  }
+  .ev-footer__bottom {
+    flex-direction: column;
+    align-items: flex-start;
+    gap: var(--sp-2);
+  }
+}

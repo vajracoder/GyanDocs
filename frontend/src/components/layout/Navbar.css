@@ -1,0 +1,128 @@
+.ev-navbar {
+  position: sticky;
+  top: 0;
+  z-index: 50;
+  background: rgba(250, 250, 250, 0.85);
+  backdrop-filter: blur(10px);
+  border-bottom: 1px solid var(--border);
+}
+
+.ev-navbar__inner {
+  height: var(--header-height);
+  display: flex;
+  align-items: center;
+  gap: var(--sp-6);
+}
+
+.ev-navbar__logo {
+  display: flex;
+  align-items: center;
+  gap: var(--sp-2);
+  font-family: var(--font-display);
+  font-weight: 700;
+  font-size: var(--fs-md);
+  color: var(--ink);
+  flex-shrink: 0;
+}
+
+.ev-navbar__mark {
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  width: 30px;
+  height: 30px;
+  border-radius: var(--radius-sm);
+  background: var(--accent);
+  color: #fff;
+  font-family: var(--font-mono);
+  font-size: 12px;
+  font-weight: 700;
+  letter-spacing: -0.02em;
+}
+
+.ev-navbar__links {
+  display: flex;
+  align-items: center;
+  gap: var(--sp-6);
+  flex: 1;
+}
+
+.ev-navbar__link {
+  font-size: var(--fs-sm);
+  font-weight: 500;
+  color: var(--ink-soft);
+  padding-block: var(--sp-2);
+  border-bottom: 2px solid transparent;
+  transition: color var(--t-fast) var(--ease), border-color var(--t-fast) var(--ease);
+}
+
+.ev-navbar__link:hover {
+  color: var(--ink);
+}
+
+.ev-navbar__link--active {
+  color: var(--accent);
+  border-color: var(--accent);
+}
+
+.ev-navbar__actions {
+  flex-shrink: 0;
+}
+
+.ev-navbar__search-icon {
+  display: inline-flex;
+}
+
+.ev-navbar__toggle {
+  display: none;
+  flex-direction: column;
+  gap: 4px;
+  background: transparent;
+  border: none;
+  padding: var(--sp-2);
+  margin-left: auto;
+}
+
+.ev-navbar__toggle span {
+  width: 20px;
+  height: 2px;
+  background: var(--ink);
+  border-radius: 1px;
+}
+
+.ev-navbar__mobile {
+  display: flex;
+  flex-direction: column;
+  gap: var(--sp-4);
+  padding: var(--sp-4) var(--sp-4) var(--sp-6);
+  border-top: 1px solid var(--border);
+  background: var(--surface);
+}
+
+.ev-navbar__mobile-links {
+  display: flex;
+  flex-direction: column;
+  gap: var(--sp-1);
+}
+
+.ev-navbar__mobile-link {
+  padding: var(--sp-3) var(--sp-2);
+  font-weight: 500;
+  color: var(--ink-soft);
+  border-radius: var(--radius-sm);
+}
+
+.ev-navbar__mobile-link:hover {
+  background: var(--accent-soft);
+  color: var(--accent-ink);
+}
+
+@media (max-width: 768px) {
+  .ev-navbar__links,
+  .ev-navbar__actions {
+    display: none;
+  }
+  .ev-navbar__toggle {
+    display: flex;
+  }
+}
