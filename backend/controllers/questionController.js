@@ -1,47 +1,82 @@
 const Question = require("../models/Question");
+const Unit = require("../models/Unit");
+const { calculatePriority } = require("../utils/priorityHelper");
 
-// ==============================
-// CREATE QUESTION
-// ==============================
-exports.createQuestion = async (req, res) => {
+// Helper to clean, deduplicate, sort years descending and calculate priority
+const processYearsAndPriority = (rawYears) => {
+  if (!rawYears) return { years: [], priority: 1 };
+  if (!Array.isArray(rawYears)) {
+    rawYears = [rawYears];
+  }
+  const cleanYears = rawYears
+    .map((y) => Number(y))
+    .filter((y) => !isNaN(y) && y > 1900 && y < 2100);
+
+  const uniqueYears = Array.from(new Set(cleanYears)).sort((a, b) => b - a);
+  const priority = calculatePriority(uniqueYears);
+  return { years: uniqueYears, priority };
+};
+
+// Helper to keep Unit questionsCount updated
+const updateUnitQuestionCount = async (unitId) => {
+  if (!unitId) return;
   try {
-    const question = await Question.create(req.body);
-
-    res.status(201).json({
-      success: true,
-      message: "Question created successfully",
-      data: question,
-    });
-  } catch (error) {
-    res.status(400).json({
-      success: false,
-      message: error.message,
-    });
+    const count = await Question.countDocuments({ unitId, isActive: true });
+    await Unit.findByIdAndUpdate(unitId, { questionsCount: count });
+  } catch (err) {
+    console.error(`Failed to update questionsCount for unit ${unitId}:`, err.message);
   }
 };
 
 // ==============================
-// GET QUESTIONS BY UNIT
+// GET ALL QUESTIONS (With Query Filters)
 // ==============================
-exports.getQuestionsByUnit = async (req, res) => {
+exports.getQuestions = async (req, res) => {
   try {
-    const { unitId } = req.query;
+    const { subjectId, unitId, year, priority, questionType, search, isActive } = req.query;
 
-    if (!unitId) {
-      return res.status(400).json({
-        success: false,
-        message: "unitId is required",
-      });
+    const filter = {};
+
+    if (isActive !== undefined) {
+      filter.isActive = isActive === "true";
+    } else {
+      filter.isActive = true;
     }
 
-    const questions = await Question.find({
-      unitId,
-      isActive: true,
-    }).sort({
-      priority: -1,
-      frequency: -1,
-      marks: -1,
-    });
+    if (subjectId) {
+      filter.subjectId = subjectId;
+    }
+
+    if (unitId) {
+      filter.unitId = unitId;
+    }
+
+    if (year) {
+      const yearNum = Number(year);
+      if (!isNaN(yearNum)) {
+        filter.years = yearNum;
+      }
+    }
+
+    if (priority) {
+      const prioNum = Number(priority);
+      if (!isNaN(prioNum)) {
+        filter.priority = prioNum;
+      }
+    }
+
+    if (questionType) {
+      filter.questionType = questionType;
+    }
+
+    if (search && search.trim() !== "") {
+      filter.questionText = { $regex: search.trim(), $options: "i" };
+    }
+
+    const questions = await Question.find(filter)
+      .populate("subjectId", "name code shortName slug semester")
+      .populate("unitId", "name unitNumber slug")
+      .sort({ priority: -1, createdAt: -1 });
 
     res.status(200).json({
       success: true,
@@ -61,7 +96,9 @@ exports.getQuestionsByUnit = async (req, res) => {
 // ==============================
 exports.getQuestionById = async (req, res) => {
   try {
-    const question = await Question.findById(req.params.id).populate("unitId");
+    const question = await Question.findById(req.params.id)
+      .populate("subjectId", "name code shortName slug semester")
+      .populate("unitId", "name unitNumber slug");
 
     if (!question) {
       return res.status(404).json({
@@ -83,11 +120,25 @@ exports.getQuestionById = async (req, res) => {
 };
 
 // ==============================
-// SMART REVISION
+// CREATE QUESTION
 // ==============================
-exports.getRevisionQuestions = async (req, res) => {
+exports.createQuestion = async (req, res) => {
   try {
-    const { unitId } = req.query;
+    const { subjectId, unitId, questionText, years: rawYears, marks, questionType, answer, source, isActive } = req.body;
+
+    if (!questionText || questionText.trim() === "") {
+      return res.status(400).json({
+        success: false,
+        message: "questionText is required",
+      });
+    }
+
+    if (!subjectId) {
+      return res.status(400).json({
+        success: false,
+        message: "subjectId is required",
+      });
+    }
 
     if (!unitId) {
       return res.status(400).json({
@@ -96,19 +147,146 @@ exports.getRevisionQuestions = async (req, res) => {
       });
     }
 
-    const questions = await Question.find({
+    const { years, priority } = processYearsAndPriority(rawYears);
+
+    const questionData = {
+      subjectId,
       unitId,
-      isActive: true,
-    }).sort({
-      priority: -1,
-      frequency: -1,
-      marks: -1,
+      questionText: questionText.trim(),
+      years,
+      priority, // Derived strictly from years.length
+      questionType: questionType || "theory",
+      answer: answer || "",
+      source: source || "",
+      isActive: isActive !== undefined ? isActive : true,
+    };
+
+    if (marks !== undefined && marks !== null && marks !== "") {
+      questionData.marks = Number(marks);
+    }
+
+    const question = await Question.create(questionData);
+
+    // Keep Unit questionsCount updated
+    await updateUnitQuestionCount(question.unitId);
+
+    const populatedQuestion = await Question.findById(question._id)
+      .populate("subjectId", "name code shortName slug semester")
+      .populate("unitId", "name unitNumber slug");
+
+    res.status(201).json({
+      success: true,
+      message: "Question created successfully",
+      data: populatedQuestion,
     });
+  } catch (error) {
+    res.status(400).json({
+      success: false,
+      message: error.message,
+    });
+  }
+};
+
+// ==============================
+// UPDATE QUESTION
+// ==============================
+exports.updateQuestion = async (req, res) => {
+  try {
+    const existingQuestion = await Question.findById(req.params.id);
+
+    if (!existingQuestion) {
+      return res.status(404).json({
+        success: false,
+        message: "Question not found",
+      });
+    }
+
+    const updateData = { ...req.body };
+
+    // Validate required fields if passed
+    if (updateData.questionText !== undefined) {
+      if (!updateData.questionText || updateData.questionText.trim() === "") {
+        return res.status(400).json({
+          success: false,
+          message: "questionText cannot be empty",
+        });
+      }
+      updateData.questionText = updateData.questionText.trim();
+    }
+
+    if (updateData.subjectId !== undefined && !updateData.subjectId) {
+      return res.status(400).json({
+        success: false,
+        message: "subjectId cannot be empty",
+      });
+    }
+
+    if (updateData.unitId !== undefined && !updateData.unitId) {
+      return res.status(400).json({
+        success: false,
+        message: "unitId cannot be empty",
+      });
+    }
+
+    // Process years and derive priority (do not trust frontend priority)
+    const targetYears = updateData.years !== undefined ? updateData.years : existingQuestion.years;
+    const { years, priority } = processYearsAndPriority(targetYears);
+    updateData.years = years;
+    updateData.priority = priority;
+
+    const oldUnitId = existingQuestion.unitId.toString();
+
+    const updatedQuestion = await Question.findByIdAndUpdate(
+      req.params.id,
+      updateData,
+      { new: true, runValidators: true }
+    )
+      .populate("subjectId", "name code shortName slug semester")
+      .populate("unitId", "name unitNumber slug");
+
+    // Update questionsCount for unit(s)
+    const newUnitId = updatedQuestion.unitId._id
+      ? updatedQuestion.unitId._id.toString()
+      : updatedQuestion.unitId.toString();
+
+    await updateUnitQuestionCount(newUnitId);
+    if (oldUnitId !== newUnitId) {
+      await updateUnitQuestionCount(oldUnitId);
+    }
 
     res.status(200).json({
       success: true,
-      total: questions.length,
-      data: questions,
+      message: "Question updated successfully",
+      data: updatedQuestion,
+    });
+  } catch (error) {
+    res.status(400).json({
+      success: false,
+      message: error.message,
+    });
+  }
+};
+
+// ==============================
+// DELETE QUESTION
+// ==============================
+exports.deleteQuestion = async (req, res) => {
+  try {
+    const question = await Question.findByIdAndDelete(req.params.id);
+
+    if (!question) {
+      return res.status(404).json({
+        success: false,
+        message: "Question not found",
+      });
+    }
+
+    // Update questionsCount for unit
+    await updateUnitQuestionCount(question.unitId);
+
+    res.status(200).json({
+      success: true,
+      message: "Question deleted successfully",
     });
   } catch (error) {
     res.status(500).json({

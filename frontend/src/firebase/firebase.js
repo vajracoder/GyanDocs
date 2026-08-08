@@ -1,4 +1,5 @@
 import { initializeApp } from "firebase/app";
+import { getAnalytics } from "firebase/analytics";
 import { getAuth } from "firebase/auth";
 
 const firebaseConfig = {
@@ -11,21 +12,10 @@ const firebaseConfig = {
   measurementId: import.meta.env.VITE_FIREBASE_MEASUREMENT_ID,
 };
 
-let app = null;
-let auth = null;
+const app = initializeApp(firebaseConfig);
 
-if (firebaseConfig.apiKey) {
-  try {
-    app = initializeApp(firebaseConfig);
-    auth = getAuth(app);
-  } catch (error) {
-    console.error("Firebase Initialization Error:", error);
-  }
-} else {
-  console.warn(
-    "Firebase API key is missing. Please configure VITE_FIREBASE_* environment variables in frontend/.env"
-  );
-}
+const analytics = getAnalytics(app);
 
-export { auth };
-export default app;
+const auth = getAuth(app);
+
+export { app, analytics, auth };

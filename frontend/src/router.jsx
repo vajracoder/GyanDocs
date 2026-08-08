@@ -20,8 +20,8 @@ import Login from "./admin/pages/Login.jsx";
 import Dashboard from "./admin/pages/Dashboard.jsx";
 import Subjects from "./admin/pages/Subjects.jsx";
 import Units from "./admin/pages/Units.jsx";
-import Topics from "./admin/pages/Topics.jsx";
 import Questions from "./admin/pages/Questions.jsx";
+import PdfImport from "./admin/pages/PdfImport.jsx";
 
 // =======================
 // Admin Layout & Protection
@@ -98,12 +98,12 @@ const router = createBrowserRouter([
         element: <Units />,
       },
       {
-        path: "topics",
-        element: <Topics />,
-      },
-      {
         path: "questions",
         element: <Questions />,
+      },
+      {
+        path: "pdf-import",
+        element: <PdfImport />,
       },
     ],
   },

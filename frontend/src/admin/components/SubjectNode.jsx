@@ -51,7 +51,11 @@ export default function SubjectNode({ subject }) {
                   <p>No units yet.</p>
                 ) : (
                   units.map((unit) => (
-                    <UnitNode key={unit._id || unit.id} unit={unit} />
+                    <UnitNode
+                      key={unit._id || unit.id}
+                      unit={unit}
+                      onUnitUpdated={loadUnits}
+                    />
                   ))
                 )}
 

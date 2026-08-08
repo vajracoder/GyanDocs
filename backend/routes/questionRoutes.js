@@ -2,22 +2,26 @@ const express = require("express");
 const router = express.Router();
 
 const {
-  createQuestion,
-  getQuestionsByUnit,
+  getQuestions,
   getQuestionById,
-  getRevisionQuestions,
+  createQuestion,
+  updateQuestion,
+  deleteQuestion,
 } = require("../controllers/questionController");
 
-// Smart Revision
-router.get("/revision", getRevisionQuestions);
+// GET all questions (supports query filters: subjectId, unitId, year, priority, questionType, search)
+router.get("/", getQuestions);
 
-// Get Questions of a Unit
-router.get("/", getQuestionsByUnit);
-
-// Get Single Question
+// GET single question by ID
 router.get("/:id", getQuestionById);
 
-// Create Question
+// POST create question
 router.post("/", createQuestion);
+
+// PUT update question
+router.put("/:id", updateQuestion);
+
+// DELETE question
+router.delete("/:id", deleteQuestion);
 
 module.exports = router;

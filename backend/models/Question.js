@@ -1,7 +1,15 @@
 const mongoose = require("mongoose");
+const { calculatePriority } = require("../utils/priorityHelper");
 
 const questionSchema = new mongoose.Schema(
   {
+    subjectId: {
+      type: mongoose.Schema.Types.ObjectId,
+      ref: "Subject",
+      required: true,
+      index: true,
+    },
+
     unitId: {
       type: mongoose.Schema.Types.ObjectId,
       ref: "Unit",
@@ -9,50 +17,40 @@ const questionSchema = new mongoose.Schema(
       index: true,
     },
 
-    question: {
+    questionText: {
       type: String,
       required: true,
       trim: true,
     },
 
-    years: [
-      {
-        type: Number,
-      },
-    ],
-
-    frequency: {
-      type: Number,
-      default: 1,
+    years: {
+      type: [Number],
+      default: [],
     },
 
     priority: {
       type: Number,
-      default: 1,
-      min: 1,
-      max: 5,
+      default: 0,
     },
 
     marks: {
       type: Number,
-      default: 0,
     },
 
     questionType: {
       type: String,
-      enum: ["Theory", "Numerical", "Short", "Long"],
-      default: "Theory",
+      enum: ["theory", "numerical", "mcq"],
+      default: "theory",
     },
 
-    pdfLinks: [
-      {
-        type: String,
-      },
-    ],
+    answer: {
+      type: String,
+      default: "",
+    },
 
-    isImportant: {
-      type: Boolean,
-      default: false,
+    source: {
+      type: String,
+      default: "",
     },
 
     isActive: {
@@ -64,5 +62,16 @@ const questionSchema = new mongoose.Schema(
     timestamps: true,
   }
 );
+
+// Pre-save hook to calculate priority automatically from years length
+questionSchema.pre("save", function (next) {
+  if (this.isModified("years") || this.isNew) {
+    this.priority = calculatePriority(this.years);
+  }
+  next();
+});
+
+// Attach helper static method
+questionSchema.statics.calculatePriority = calculatePriority;
 
 module.exports = mongoose.model("Question", questionSchema);

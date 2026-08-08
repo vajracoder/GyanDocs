@@ -4,7 +4,8 @@ import {
   signInWithEmailAndPassword,
   signOut,
 } from "firebase/auth";
-import { auth } from "../firebase/firebase"; // ✅ Import auth
+
+import { auth } from "../firebase/firebase";
 
 const AuthContext = createContext();
 
@@ -22,7 +23,7 @@ export function AuthProvider({ children }) {
     return signOut(auth);
   };
 
-  // Listen for auth changes
+  // Listen for authentication changes
   useEffect(() => {
     if (!auth) {
       setLoading(false);
