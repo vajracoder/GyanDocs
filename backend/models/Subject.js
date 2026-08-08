@@ -1,17 +1,64 @@
-const mongoose = require('mongoose');
+const mongoose = require("mongoose");
 
 const subjectSchema = new mongoose.Schema(
   {
-    slug: { type: String, required: true, unique: true, index: true },
-    name: { type: String, required: true },
-    code: { type: String, required: true },
-    description: { type: String, default: '' },
-    icon: { type: String, default: '' },
-    accent: { type: String, default: '#2F5FFF' },
-    unitsCount: { type: Number, default: 0 },
-    questionsCount: { type: Number, default: 0 },
+    semester: {
+      type: Number,
+      required: true,
+      min: 1,
+      max: 8,
+      index: true,
+    },
+
+    name: {
+      type: String,
+      required: true,
+      trim: true,
+    },
+
+    shortName: {
+      type: String,
+      required: true,
+      trim: true,
+      uppercase: true,
+    },
+
+    code: {
+      type: String,
+      required: true,
+      trim: true,
+      uppercase: true,
+    },
+
+    slug: {
+      type: String,
+      required: true,
+      unique: true,
+      trim: true,
+      lowercase: true,
+    },
+
+    description: {
+      type: String,
+      default: "",
+      trim: true,
+    },
+
+    isActive: {
+      type: Boolean,
+      default: true,
+    },
   },
-  { timestamps: true }
+  {
+    timestamps: true,
+  }
 );
 
-module.exports = mongoose.model('Subject', subjectSchema);
+subjectSchema.index({ code: 1 }, { unique: true });
+
+subjectSchema.index(
+  { semester: 1, name: 1 },
+  { unique: true }
+);
+
+module.exports = mongoose.model("Subject", subjectSchema);

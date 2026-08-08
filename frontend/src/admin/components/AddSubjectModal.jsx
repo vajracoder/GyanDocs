@@ -1,40 +1,101 @@
 import { useState } from "react";
+import { createSubject } from "../../services/api";
 import "./AddSubjectModal.css";
 
-export default function AddSubjectModal({ open, onClose }) {
-  const [subjectName, setSubjectName] = useState("");
-  const [subjectCode, setSubjectCode] = useState("");
+export default function AddSubjectModal({ open, onClose, onSuccess }) {
+  const [formData, setFormData] = useState({
+    semester: "",
+    name: "",
+    code: "",
+    slug: "",
+  });
+
+  const [loading, setLoading] = useState(false);
 
   if (!open) return null;
 
-  const handleSubmit = (e) => {
+  const handleChange = (e) => {
+    let { name, value } = e.target;
+
+    if (name === "name") {
+      const slug = value
+        .toLowerCase()
+        .trim()
+        .replace(/\s+/g, "-");
+
+      setFormData({
+        ...formData,
+        name: value,
+        slug,
+      });
+    } else {
+      setFormData({
+        ...formData,
+        [name]: value,
+      });
+    }
+  };
+
+  const handleSubmit = async (e) => {
     e.preventDefault();
 
-    console.log({
-      subjectName,
-      subjectCode,
-    });
+    try {
+      setLoading(true);
 
-    setSubjectName("");
-    setSubjectCode("");
+      await createSubject(formData);
 
-    onClose();
+      setFormData({
+        semester: "",
+        name: "",
+        code: "",
+        slug: "",
+      });
+
+      onSuccess?.();
+      onClose();
+
+    } catch (err) {
+      alert(err.response?.data?.message || "Failed to create subject");
+    } finally {
+      setLoading(false);
+    }
   };
 
   return (
     <div className="modal-overlay">
       <div className="modal">
+
         <h2>Add Subject</h2>
 
         <form onSubmit={handleSubmit}>
+
+          <div className="form-group">
+            <label>Semester</label>
+
+            <select
+              name="semester"
+              value={formData.semester}
+              onChange={handleChange}
+              required
+            >
+              <option value="">Select Semester</option>
+
+              {[1,2,3,4,5,6,7,8].map((sem)=>(
+                <option key={sem} value={sem}>
+                  Semester {sem}
+                </option>
+              ))}
+            </select>
+          </div>
+
           <div className="form-group">
             <label>Subject Name</label>
 
             <input
-              type="text"
-              placeholder="Enter Subject Name"
-              value={subjectName}
-              onChange={(e) => setSubjectName(e.target.value)}
+              name="name"
+              value={formData.name}
+              onChange={handleChange}
+              placeholder="Database Management System"
               required
             />
           </div>
@@ -43,15 +104,26 @@ export default function AddSubjectModal({ open, onClose }) {
             <label>Subject Code</label>
 
             <input
-              type="text"
-              placeholder="Enter Subject Code"
-              value={subjectCode}
-              onChange={(e) => setSubjectCode(e.target.value)}
+              name="code"
+              value={formData.code}
+              onChange={handleChange}
+              placeholder="KCS501"
               required
             />
           </div>
 
+          <div className="form-group">
+            <label>Slug</label>
+
+            <input
+              name="slug"
+              value={formData.slug}
+              readOnly
+            />
+          </div>
+
           <div className="modal-buttons">
+
             <button
               type="button"
               className="cancel-btn"
@@ -61,13 +133,16 @@ export default function AddSubjectModal({ open, onClose }) {
             </button>
 
             <button
-              type="submit"
               className="save-btn"
+              disabled={loading}
             >
-              Save Subject
+              {loading ? "Saving..." : "Save Subject"}
             </button>
+
           </div>
+
         </form>
+
       </div>
     </div>
   );

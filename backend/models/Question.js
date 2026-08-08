@@ -1,24 +1,68 @@
-const mongoose = require('mongoose');
+const mongoose = require("mongoose");
 
 const questionSchema = new mongoose.Schema(
   {
-    subjectSlug: { type: String, required: true, index: true },
-    subjectName: { type: String, required: true },
-    unitSlug: { type: String, required: true, index: true },
-    unitName: { type: String, required: true },
-    unitNumber: { type: Number, required: true },
-    topicSlug: { type: String, required: true, index: true },
-    topicName: { type: String, required: true },
-    question: { type: String, required: true },
-    marks: { type: Number, required: true },
-    year: { type: Number, required: true },
-    frequency: { type: Number, default: 1 },
-    priority: { type: String, enum: ['High', 'Medium', 'Low'], default: 'Low' },
-    pdfUrl: { type: String, default: '/sample.pdf' },
+    unitId: {
+      type: mongoose.Schema.Types.ObjectId,
+      ref: "Unit",
+      required: true,
+      index: true,
+    },
+
+    question: {
+      type: String,
+      required: true,
+      trim: true,
+    },
+
+    years: [
+      {
+        type: Number,
+      },
+    ],
+
+    frequency: {
+      type: Number,
+      default: 1,
+    },
+
+    priority: {
+      type: Number,
+      default: 1,
+      min: 1,
+      max: 5,
+    },
+
+    marks: {
+      type: Number,
+      default: 0,
+    },
+
+    questionType: {
+      type: String,
+      enum: ["Theory", "Numerical", "Short", "Long"],
+      default: "Theory",
+    },
+
+    pdfLinks: [
+      {
+        type: String,
+      },
+    ],
+
+    isImportant: {
+      type: Boolean,
+      default: false,
+    },
+
+    isActive: {
+      type: Boolean,
+      default: true,
+    },
   },
-  { timestamps: true }
+  {
+    timestamps: true,
+  }
 );
 
-questionSchema.index({ question: 'text', topicName: 'text', subjectName: 'text', unitName: 'text' });
-
-module.exports = mongoose.model('Question', questionSchema);
+module.exports = mongoose.model("Question", questionSchema);

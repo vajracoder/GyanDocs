@@ -1,39 +1,99 @@
+import { useEffect, useState } from "react";
 import "./Dashboard.css";
 
+import { getSubjects } from "../../services/api";
+
+import AddSubjectModal from "../components/AddSubjectModal";
+import AcademicTree from "../components/AcademicTree";
+
 export default function Dashboard() {
-  const cards = [
+  const [subjects, setSubjects] = useState([]);
+  const [loading, setLoading] = useState(true);
+  const [showModal, setShowModal] = useState(false);
+
+  const loadSubjects = async () => {
+    try {
+      setLoading(true);
+
+      const res = await getSubjects();
+
+      setSubjects(res.data || []);
+    } catch (error) {
+      console.error(error);
+    } finally {
+      setLoading(false);
+    }
+  };
+
+  useEffect(() => {
+    loadSubjects();
+  }, []);
+
+  const stats = [
     {
       title: "Subjects",
-      value: "0",
+      value: subjects.length,
     },
     {
       title: "Units",
-      value: "0",
-    },
-    {
-      title: "Topics",
-      value: "0",
+      value: 0,
     },
     {
       title: "Questions",
-      value: "0",
+      value: 0,
+    },
+    {
+      title: "PDFs Imported",
+      value: 0,
     },
   ];
 
   return (
-    <div>
-      <h1>Dashboard</h1>
+    <div className="dashboard">
+      <h1>GyanDocs Admin</h1>
 
-      <p>Welcome to GyanDoc Admin Panel</p>
+      <p>Manage your academic structure and question bank.</p>
 
+      {/* Statistics */}
       <div className="dashboard-grid">
-        {cards.map((card) => (
-          <div className="dashboard-card" key={card.title}>
-            <h2>{card.value}</h2>
-            <p>{card.title}</p>
+        {stats.map((item) => (
+          <div className="dashboard-card" key={item.title}>
+            <h2>{item.value}</h2>
+            <p>{item.title}</p>
           </div>
         ))}
       </div>
+
+      {/* Academic Manager */}
+      <div className="academic-manager">
+        <div className="academic-header">
+          <h2>Academic Structure</h2>
+
+          <button
+            className="primary-btn"
+            onClick={() => setShowModal(true)}
+          >
+            + Add Subject
+          </button>
+        </div>
+
+        {loading ? (
+          <p>Loading...</p>
+        ) : subjects.length === 0 ? (
+          <div className="empty-state">
+            <h3>No Subjects Yet</h3>
+            <p>Start by creating your first subject.</p>
+          </div>
+        ) : (
+          <AcademicTree subjects={subjects} />
+        )}
+      </div>
+
+      <AddSubjectModal
+        open={showModal}
+        onClose={() => setShowModal(false)}
+        onSuccess={loadSubjects}
+      />
     </div>
   );
 }

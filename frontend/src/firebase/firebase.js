@@ -11,7 +11,21 @@ const firebaseConfig = {
   measurementId: import.meta.env.VITE_FIREBASE_MEASUREMENT_ID,
 };
 
-const app = initializeApp(firebaseConfig);
+let app = null;
+let auth = null;
 
-export const auth = getAuth(app);
+if (firebaseConfig.apiKey) {
+  try {
+    app = initializeApp(firebaseConfig);
+    auth = getAuth(app);
+  } catch (error) {
+    console.error("Firebase Initialization Error:", error);
+  }
+} else {
+  console.warn(
+    "Firebase API key is missing. Please configure VITE_FIREBASE_* environment variables in frontend/.env"
+  );
+}
+
+export { auth };
 export default app;

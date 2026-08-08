@@ -1,8 +1,23 @@
-const express = require('express');
+const express = require("express");
 const router = express.Router();
-const { getQuestionsByTopic, getQuestionById } = require('../controllers/questionController');
 
-router.get('/:subjectSlug/:unitSlug/:topicSlug', getQuestionsByTopic);
-router.get('/id/:id', getQuestionById);
+const {
+  createQuestion,
+  getQuestionsByUnit,
+  getQuestionById,
+  getRevisionQuestions,
+} = require("../controllers/questionController");
+
+// Smart Revision
+router.get("/revision", getRevisionQuestions);
+
+// Get Questions of a Unit
+router.get("/", getQuestionsByUnit);
+
+// Get Single Question
+router.get("/:id", getQuestionById);
+
+// Create Question
+router.post("/", createQuestion);
 
 module.exports = router;

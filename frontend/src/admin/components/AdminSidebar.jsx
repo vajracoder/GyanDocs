@@ -5,30 +5,35 @@ export default function AdminSidebar() {
   return (
     <aside className="sidebar">
       <div className="sidebar-logo">
-        GyanDoc
+        GyanDocs
       </div>
 
       <nav>
+
         <NavLink to="/admin/dashboard">
-          Dashboard
+          🏠 Dashboard
         </NavLink>
 
-        <NavLink to="/admin/subjects">
-          Subjects
+        <NavLink to="/admin/dashboard">
+          📚 Academic Manager
         </NavLink>
 
-        <NavLink to="/admin/units">
-          Units
+        <NavLink to="/admin/pdf-import">
+          📄 PDF Import
         </NavLink>
 
-        <NavLink to="/admin/topics">
-          Topics
+        <NavLink to="/admin/settings">
+          ⚙ Settings
         </NavLink>
 
-        <NavLink to="/admin/questions">
-          Questions
-        </NavLink>
       </nav>
+
+      <div className="sidebar-footer">
+        <button className="logout-btn">
+          🚪 Logout
+        </button>
+      </div>
+
     </aside>
   );
 }
