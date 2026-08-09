@@ -77,3 +77,24 @@
 .add-unit-btn:hover {
   background: #1d4ed8;
 }
+
+.subject-header-actions { display: flex; align-items: center; gap: 14px; }
+.delete-subject-btn { padding: 6px 10px; color: #b91c1c; background: #fff; border: 1px solid #fecaca; border-radius: 6px; font-size: 0.8rem; cursor: pointer; }
+.delete-subject-btn:hover { background: #fef2f2; }
+
+.subject-delete-overlay { position: fixed; inset: 0; z-index: 1000; display: grid; place-items: center; padding: 20px; background: rgba(15, 23, 42, 0.45); }
+.subject-delete-dialog { width: min(100%, 420px); padding: 24px; background: #fff; border-radius: 12px; box-shadow: 0 20px 50px rgba(15, 23, 42, 0.2); }
+.subject-delete-dialog h3 { margin: 0 0 10px; color: #111827; }
+.subject-delete-dialog p { margin: 0; color: #4b5563; line-height: 1.5; }
+.subject-delete-error { margin-top: 14px !important; color: #b91c1c !important; }
+.subject-delete-actions { display: flex; justify-content: flex-end; gap: 10px; margin-top: 24px; }
+.subject-delete-actions button { padding: 9px 14px; border: 1px solid #d1d5db; border-radius: 6px; background: #fff; cursor: pointer; }
+.subject-delete-actions button:disabled { cursor: not-allowed; opacity: 0.65; }
+.subject-delete-actions .delete-subject-confirm-btn { color: #fff; background: #dc2626; border-color: #dc2626; }
+
+@media (max-width: 520px) {
+  .subject-header { align-items: flex-start; gap: 12px; }
+  .subject-header-actions { flex-shrink: 0; gap: 8px; }
+  .subject-delete-actions { flex-direction: column-reverse; }
+  .subject-delete-actions button { width: 100%; }
+}

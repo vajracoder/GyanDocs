@@ -21,7 +21,7 @@ export default function SubjectsPage() {
 
   return (
     <div className="container ev-subjects-page">
-      <Breadcrumb items={[{ label: 'Subjects' }]} />
+      <Breadcrumb items={[{ label: 'Home', to: '/' }, { label: 'Subjects' }]} />
 
       <div className="ev-subjects-page__head">
         <span className="eyebrow">All subjects</span>
@@ -39,7 +39,7 @@ export default function SubjectsPage() {
       ) : (
         <div className="ev-subjects-page__grid">
           {subjects.map((s) => (
-            <SubjectCard key={s.id} subject={s} />
+            <SubjectCard key={s._id || s.id} subject={s} />
           ))}
         </div>
       )}

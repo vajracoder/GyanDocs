@@ -1,11 +1,6 @@
-import { useEffect, useMemo, useState } from 'react'
-import { useParams, useSearchParams, useNavigate } from 'react-router-dom'
-import questionsFallback from '../data/questions.json'
-import subjects from '../data/subjects.json'
-import units from '../data/units.json'
-import topics from '../data/topics.json'
-import { searchQuestions as searchApi, getQuestionsByTopic } from '../services/api.js'
-import { searchQuestions as searchLocal, questionsForTopic, paginate } from '../utils/search.js'
+import { useEffect, useState } from 'react'
+import { useSearchParams } from 'react-router-dom'
+import { searchQuestions } from '../services/api.js'
 import Breadcrumb from '../components/ui/Breadcrumb.jsx'
 import SearchBar from '../components/ui/SearchBar.jsx'
 import QuestionCard from '../components/cards/QuestionCard.jsx'
@@ -15,122 +10,49 @@ import Pagination from '../components/ui/Pagination.jsx'
 
 const PER_PAGE = 8
 
-export default function ResultsPage() {
-  const params = useParams()
-  const navigate = useNavigate()
-  const [searchParams, setSearchParams] = useSearchParams()
-  const isScoped = Boolean(params.topicSlug)
+function paginate(items, page, perPage) {
+  const totalPages = Math.max(1, Math.ceil(items.length / perPage))
+  const safePage = Math.min(Math.max(1, page), totalPages)
+  const start = (safePage - 1) * perPage
+  return { pageItems: items.slice(start, start + perPage), totalPages, page: safePage }
+}
 
+export default function ResultsPage() {
+  const [searchParams, setSearchParams] = useSearchParams()
   const query = searchParams.get('q') || ''
   const [page, setPage] = useState(1)
   const [loading, setLoading] = useState(true)
   const [results, setResults] = useState([])
   const [searchInput, setSearchInput] = useState(query)
 
-  useEffect(() => {
-    setSearchInput(query)
-  }, [query])
+  useEffect(() => { setSearchInput(query) }, [query])
 
   useEffect(() => {
     let cancelled = false
     setPage(1)
     setLoading(true)
-
-    const fetcher = isScoped
-      ? getQuestionsByTopic(params.subjectSlug, params.unitSlug, params.topicSlug)
-      : searchApi(query)
-
-    fetcher
-      .then((data) => !cancelled && setResults(data))
-      .catch(() => {
-        if (cancelled) return
-        setResults(
-          isScoped
-            ? questionsForTopic(questionsFallback, params.subjectSlug, params.unitSlug, params.topicSlug)
-            : searchLocal(questionsFallback, query)
-        )
-      })
+    searchQuestions(query)
+      .then((response) => !cancelled && setResults(response.data || []))
+      .catch(() => !cancelled && setResults([]))
       .finally(() => !cancelled && setLoading(false))
-
     return () => { cancelled = true }
-    // eslint-disable-next-line react-hooks/exhaustive-deps
-  }, [isScoped, query, params.subjectSlug, params.unitSlug, params.topicSlug])
-
-  const { breadcrumbItems, heading } = useMemo(() => {
-    if (isScoped) {
-      const { subjectSlug, unitSlug, topicSlug } = params
-      const first = results[0]
-      const subjectName = first?.subjectName || subjects.find((s) => s.slug === subjectSlug)?.name || subjectSlug
-      const unitNumber = first?.unitNumber ?? units.find((u) => u.subjectSlug === subjectSlug && u.slug === unitSlug)?.unitNumber
-      const topicName = first?.topicName || topics.find((t) => t.subjectSlug === subjectSlug && t.unitSlug === unitSlug && t.slug === topicSlug)?.name || topicSlug
-
-      return {
-        heading: topicName || 'Questions',
-        breadcrumbItems: [
-          { label: 'Subjects', to: '/subjects' },
-          { label: subjectName, to: `/subjects/${subjectSlug}` },
-          { label: unitNumber ? `Unit ${unitNumber}` : unitSlug, to: `/subjects/${subjectSlug}/${unitSlug}` },
-          { label: topicName },
-        ],
-      }
-    }
-
-    return {
-      heading: query ? `Results for "${query}"` : 'Search results',
-      breadcrumbItems: [
-        { label: 'Search', to: '/search' },
-        { label: query ? `"${query}"` : 'Results' },
-      ],
-    }
-  }, [isScoped, params, query, results])
+  }, [query])
 
   const { pageItems, totalPages, page: safePage } = paginate(results, page, PER_PAGE)
-
-  function handleSearchSubmit(term) {
-    setSearchParams({ q: term })
-  }
+  const heading = query ? `Results for "${query}"` : 'Search results'
 
   return (
     <div className="container" style={{ paddingBlock: 'var(--sp-10)' }}>
-      <Breadcrumb items={breadcrumbItems} />
-
+      <Breadcrumb items={[{ label: 'Home', to: '/' }, { label: 'Search', to: '/search' }, { label: query ? `"${query}"` : 'Results' }]} />
       <div style={{ marginTop: 'var(--sp-5)', marginBottom: 'var(--sp-6)' }}>
         <h1 style={{ fontSize: 'var(--fs-2xl)', marginBottom: 'var(--sp-2)' }}>{heading}</h1>
-        {!loading && (
-          <p className="mono text-muted" style={{ fontSize: 'var(--fs-sm)' }}>
-            {results.length} {results.length === 1 ? 'question' : 'questions'} found
-          </p>
-        )}
+        {!loading && <p className="mono text-muted" style={{ fontSize: 'var(--fs-sm)' }}>{results.length} {results.length === 1 ? 'question' : 'questions'} found</p>}
       </div>
-
-      {!isScoped && (
-        <div style={{ marginBottom: 'var(--sp-8)', maxWidth: 640 }}>
-          <SearchBar value={searchInput} onChange={setSearchInput} onSubmit={handleSearchSubmit} size="md" />
-        </div>
-      )}
-
-      {loading ? (
-        <LoadingSkeleton variant="list" count={4} />
-      ) : results.length === 0 ? (
-        <EmptyState
-          title="No questions found"
-          description={
-            isScoped
-              ? "This topic doesn't have any indexed questions yet."
-              : `Nothing matched "${query}". Try "Deadlock", "Binary Tree" or "Unit 3".`
-          }
-          actionLabel="Back to Search"
-          actionTo="/search"
-        />
+      <div style={{ marginBottom: 'var(--sp-8)', maxWidth: 640 }}><SearchBar value={searchInput} onChange={setSearchInput} onSubmit={(term) => setSearchParams({ q: term })} size="md" /></div>
+      {loading ? <LoadingSkeleton variant="list" count={4} /> : results.length === 0 ? (
+        <EmptyState title="No questions found" description={`Nothing matched "${query}". Try "Deadlock", "Binary Tree" or "Unit 3".`} actionLabel="Back to Search" actionTo="/search" />
       ) : (
-        <>
-          <div style={{ display: 'flex', flexDirection: 'column', gap: 'var(--sp-4)' }}>
-            {pageItems.map((q) => (
-              <QuestionCard key={q.id || q._id} question={q} />
-            ))}
-          </div>
-          <Pagination currentPage={safePage} totalPages={totalPages} onPageChange={setPage} />
-        </>
+        <><div style={{ display: 'flex', flexDirection: 'column', gap: 'var(--sp-4)' }}>{pageItems.map((question) => <QuestionCard key={question._id} question={question} />)}</div><Pagination currentPage={safePage} totalPages={totalPages} onPageChange={setPage} /></>
       )}
     </div>
   )

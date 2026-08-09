@@ -10,19 +10,25 @@ export default function Dashboard() {
   const [subjects, setSubjects] = useState([]);
   const [loading, setLoading] = useState(true);
   const [showModal, setShowModal] = useState(false);
+  const [notice, setNotice] = useState("");
 
   const loadSubjects = async () => {
     try {
       setLoading(true);
 
-      const res = await getSubjects();
+      const subjects = await getSubjects();
 
-      setSubjects(res.data || []);
+      setSubjects(subjects || []);
     } catch (error) {
       console.error(error);
     } finally {
       setLoading(false);
     }
+  };
+
+  const handleSubjectDeleted = async (subjectName) => {
+    await loadSubjects();
+    setNotice(`${subjectName} was deleted successfully.`);
   };
 
   useEffect(() => {
@@ -53,6 +59,7 @@ export default function Dashboard() {
       <h1>GyanDocs Admin</h1>
 
       <p>Manage your academic structure and question bank.</p>
+      {notice && <p className="dashboard-notice" role="status">{notice}</p>}
 
       {/* Statistics */}
       <div className="dashboard-grid">
@@ -85,7 +92,7 @@ export default function Dashboard() {
             <p>Start by creating your first subject.</p>
           </div>
         ) : (
-          <AcademicTree subjects={subjects} />
+          <AcademicTree subjects={subjects} onSubjectDeleted={handleSubjectDeleted} />
         )}
       </div>
 

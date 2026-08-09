@@ -9,9 +9,8 @@ import SearchPage from "./pages/SearchPage.jsx";
 import ResultsPage from "./pages/ResultsPage.jsx";
 import SubjectsPage from "./pages/SubjectsPage.jsx";
 import UnitPage from "./pages/UnitPage.jsx";
-import TopicPage from "./pages/TopicPage.jsx";
+import UnitQuestionsPage from "./pages/UnitQuestionsPage.jsx";
 import QuestionDetailsPage from "./pages/QuestionDetailsPage.jsx";
-import PdfViewerPage from "./pages/PdfViewerPage.jsx";
 
 // =======================
 // Admin Pages
@@ -45,19 +44,11 @@ const router = createBrowserRouter([
       { path: "subjects/:subjectSlug", element: <UnitPage /> },
       {
         path: "subjects/:subjectSlug/:unitSlug",
-        element: <TopicPage />,
-      },
-      {
-        path: "subjects/:subjectSlug/:unitSlug/:topicSlug",
-        element: <ResultsPage />,
+        element: <UnitQuestionsPage />,
       },
       {
         path: "question/:questionId",
         element: <QuestionDetailsPage />,
-      },
-      {
-        path: "question/:questionId/pdf",
-        element: <PdfViewerPage />,
       },
     ],
   },

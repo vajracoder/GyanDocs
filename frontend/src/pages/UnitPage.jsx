@@ -2,7 +2,7 @@ import { useEffect, useState } from 'react'
 import { useParams, Link } from 'react-router-dom'
 import subjectsFallback from '../data/subjects.json'
 import unitsFallback from '../data/units.json'
-import { getSubject, getUnits } from '../services/api.js'
+import { getSubjects, getUnits } from '../services/api.js'
 import Breadcrumb from '../components/ui/Breadcrumb.jsx'
 import UnitCard from '../components/cards/UnitCard.jsx'
 import EmptyState from '../components/ui/EmptyState.jsx'
@@ -18,11 +18,28 @@ export default function UnitPage() {
   useEffect(() => {
     let cancelled = false
     setLoading(true)
-    Promise.all([getSubject(subjectSlug), getUnits(subjectSlug)])
-      .then(([s, u]) => {
+    getSubjects()
+      .then((allSubjects) => {
         if (cancelled) return
-        setSubject(s)
-        setSubjectUnits([...u].sort((a, b) => a.unitNumber - b.unitNumber))
+        const selectedSubject = allSubjects.find((item) => item.slug === subjectSlug)
+
+        if (!selectedSubject) {
+          setSubject(null)
+          setSubjectUnits([])
+          return null
+        }
+
+        setSubject(selectedSubject)
+        return getUnits(selectedSubject._id || selectedSubject.id)
+      })
+      .then((response) => {
+        if (cancelled || !response) return
+        const units = response.data || []
+        setSubjectUnits(
+          units
+            .map((unit) => ({ ...unit, subjectSlug }))
+            .sort((a, b) => a.unitNumber - b.unitNumber)
+        )
       })
       .catch(() => {
         if (cancelled) return
@@ -60,6 +77,7 @@ export default function UnitPage() {
     <div className="container ev-unit-page">
       <Breadcrumb
         items={[
+          { label: 'Home', to: '/' },
           { label: 'Subjects', to: '/subjects' },
           { label: subject.name },
         ]}
@@ -83,7 +101,7 @@ export default function UnitPage() {
 
       <div className="ev-unit-page__list">
         {subjectUnits.map((u) => (
-          <UnitCard key={u.id} unit={u} />
+          <UnitCard key={u._id || u.id} unit={u} />
         ))}
       </div>
 

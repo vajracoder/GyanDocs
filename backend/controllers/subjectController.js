@@ -1,4 +1,6 @@
 const Subject = require("../models/Subject");
+const Unit = require("../models/Unit");
+const Question = require("../models/Question");
 
 // ==============================
 // GET ALL SUBJECTS
@@ -151,7 +153,7 @@ exports.updateSubject = async (req, res) => {
 // ==============================
 exports.deleteSubject = async (req, res) => {
   try {
-    const subject = await Subject.findByIdAndDelete(req.params.id);
+    const subject = await Subject.findById(req.params.id);
 
     if (!subject) {
       return res.status(404).json({
@@ -160,9 +162,22 @@ exports.deleteSubject = async (req, res) => {
       });
     }
 
+    // A subject is permanently deleted, so remove its dependent academic data
+    // first to avoid leaving Units or Questions without a parent subject.
+    const [questionsResult, unitsResult] = await Promise.all([
+      Question.deleteMany({ subjectId: subject._id }),
+      Unit.deleteMany({ subjectId: subject._id }),
+    ]);
+
+    await Subject.deleteOne({ _id: subject._id });
+
     res.status(200).json({
       success: true,
       message: "Subject deleted successfully",
+      deleted: {
+        questions: questionsResult.deletedCount,
+        units: unitsResult.deletedCount,
+      },
     });
   } catch (error) {
     res.status(500).json({

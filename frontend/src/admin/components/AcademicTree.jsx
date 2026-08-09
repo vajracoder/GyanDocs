@@ -1,7 +1,7 @@
 import SubjectNode from "./SubjectNode";
 import "./AcademicTree.css";
 
-export default function AcademicTree({ subjects }) {
+export default function AcademicTree({ subjects, onSubjectDeleted }) {
   if (!subjects || subjects.length === 0) {
     return (
       <div className="empty-state">
@@ -14,7 +14,7 @@ export default function AcademicTree({ subjects }) {
   return (
     <div className="academic-tree">
       {subjects.map((subject) => (
-        <SubjectNode key={subject._id || subject.id} subject={subject} />
+        <SubjectNode key={subject._id || subject.id} subject={subject} onSubjectDeleted={onSubjectDeleted} />
       ))}
     </div>
   );

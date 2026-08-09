@@ -100,3 +100,12 @@
 .empty-state p {
   color: #64748b;
 }
+
+.dashboard-notice {
+  margin: -16px 0 24px;
+  padding: 10px 14px;
+  color: #166534 !important;
+  background: #ecfdf3;
+  border: 1px solid #bbf7d0;
+  border-radius: 8px;
+}

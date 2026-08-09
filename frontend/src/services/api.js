@@ -20,6 +20,9 @@ export const createSubject = (data) =>
 export const getSubject = (slug) =>
   api.get(`/subjects/${slug}`).then((res) => res.data);
 
+export const deleteSubject = (id) =>
+  api.delete(`/subjects/${id}`).then((res) => res.data);
+
 // ==========================
 // UNITS
 // ==========================
@@ -32,13 +35,6 @@ export const getUnit = (subjectSlug, unitSlug) =>
 
 export const createUnit = (data) =>
   api.post("/units", data).then((res) => res.data);
-
-// ==========================
-// TOPICS
-// ==========================
-
-export const getTopics = (subjectSlug, unitSlug) =>
-  api.get(`/topics?subjectSlug=${subjectSlug}&unitSlug=${unitSlug}`).then((res) => res.data);
 
 // ==========================
 // QUESTIONS
@@ -68,9 +64,6 @@ export const deleteQuestion = (id) =>
 
 export const searchQuestions = (query) =>
   api.get(`/questions?search=${encodeURIComponent(query)}`).then((res) => res.data);
-
-export const getQuestionsByTopic = (subjectSlug, unitSlug, topicSlug) =>
-  api.get(`/questions?topicSlug=${topicSlug}`).then((res) => res.data);
 
 // ==========================
 // SMART REVISION

@@ -26,7 +26,7 @@ export default function SearchPage() {
         <span className="eyebrow">Search</span>
         <h1 className="ev-search-page__title">What are you studying for?</h1>
         <p className="ev-search-page__subtitle">
-          Search by topic, keyword, or unit — e.g. "Deadlock", "Binary Tree" or "Unit 3".
+          Search by keyword or unit — e.g. "Deadlock", "Binary Tree" or "Unit 3".
         </p>
 
         <div className="ev-search-page__bar">

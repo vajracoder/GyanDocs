@@ -1,11 +1,8 @@
 import { useEffect, useState } from 'react'
 import { useParams, Link } from 'react-router-dom'
-import questionsFallback from '../data/questions.json'
-import { getQuestionById, getQuestionsByTopic } from '../services/api.js'
+import { getQuestionById, getQuestions } from '../services/api.js'
 import Breadcrumb from '../components/ui/Breadcrumb.jsx'
-import Button from '../components/ui/Button.jsx'
 import PriorityBadge from '../components/ui/PriorityBadge.jsx'
-import FrequencyBar from '../components/ui/FrequencyBar.jsx'
 import QuestionCard from '../components/cards/QuestionCard.jsx'
 import EmptyState from '../components/ui/EmptyState.jsx'
 import LoadingSkeleton from '../components/ui/LoadingSkeleton.jsx'
@@ -22,26 +19,18 @@ export default function QuestionDetailsPage() {
     setLoading(true)
 
     getQuestionById(questionId)
-      .then((q) => {
-        if (cancelled) return
-        setQuestion(q)
-        return getQuestionsByTopic(q.subjectSlug, q.unitSlug, q.topicSlug)
+      .then((response) => {
+        const currentQuestion = response.data
+        if (cancelled || !currentQuestion) return null
+        setQuestion(currentQuestion)
+        return getQuestions({ unitId: currentQuestion.unitId?._id || currentQuestion.unitId })
       })
-      .then((topicQs) => {
-        if (cancelled || !topicQs) return
-        setRelated(topicQs.filter((q) => (q.id || q._id) !== questionId).slice(0, 3))
+      .then((response) => {
+        if (cancelled || !response) return
+        setRelated((response.data || []).filter((item) => (item._id || item.id) !== questionId).slice(0, 3))
       })
       .catch(() => {
-        if (cancelled) return
-        const local = questionsFallback.find((q) => q.id === questionId) || null
-        setQuestion(local)
-        if (local) {
-          setRelated(
-            questionsFallback
-              .filter((q) => q.id !== local.id && q.topicSlug === local.topicSlug && q.subjectSlug === local.subjectSlug)
-              .slice(0, 3)
-          )
-        }
+        if (!cancelled) setQuestion(null)
       })
       .finally(() => !cancelled && setLoading(false))
 
@@ -49,98 +38,46 @@ export default function QuestionDetailsPage() {
   }, [questionId])
 
   if (loading) {
-    return (
-      <div className="container" style={{ paddingBlock: 'var(--sp-10)' }}>
-        <LoadingSkeleton variant="text" count={4} />
-      </div>
-    )
+    return <div className="container" style={{ paddingBlock: 'var(--sp-10)' }}><LoadingSkeleton variant="text" count={4} /></div>
   }
 
   if (!question) {
-    return (
-      <div className="container" style={{ paddingBlock: 'var(--sp-16)' }}>
-        <EmptyState
-          title="Question not found"
-          description="This question may have been removed or the link is incorrect."
-          actionLabel="Back to Search"
-          actionTo="/search"
-        />
-      </div>
-    )
+    return <div className="container" style={{ paddingBlock: 'var(--sp-16)' }}><EmptyState title="Question not found" description="This question may have been removed or the link is incorrect." actionLabel="Back to Search" actionTo="/search" /></div>
   }
 
-  const {
-    subjectSlug, unitSlug, topicSlug,
-    subjectName, unitNumber, topicName,
-    question: text, marks, year, frequency, priority, pdfUrl,
-  } = question
-  const id = question.id || question._id
+  const { subjectId, unitId, questionText, years = [], marks, questionType, priority, source } = question
+  const subjectName = subjectId?.name || 'Subject'
+  const subjectSlug = subjectId?.slug
+  const unitNumber = unitId?.unitNumber
+  const unitSlug = unitId?.slug
 
   return (
     <div className="container ev-qdp">
-      <Breadcrumb
-        items={[
-          { label: 'Subjects', to: '/subjects' },
-          { label: subjectName, to: `/subjects/${subjectSlug}` },
-          { label: `Unit ${unitNumber}`, to: `/subjects/${subjectSlug}/${unitSlug}` },
-          { label: topicName, to: `/subjects/${subjectSlug}/${unitSlug}/${topicSlug}` },
-          { label: 'Question' },
-        ]}
-      />
+      <Breadcrumb items={[
+        { label: 'Home', to: '/' },
+        { label: 'Subjects', to: '/subjects' },
+        { label: subjectName, to: `/subjects/${subjectSlug}` },
+        { label: `Unit ${unitNumber}`, to: `/subjects/${subjectSlug}/${unitSlug}` },
+        { label: 'Question' },
+      ]} />
 
       <div className="ev-qdp__card card-base">
         <div className="ev-qdp__top">
-          <span className="ev-qdp__path mono">
-            {subjectName} <span className="ev-qdp__sep">/</span> Unit {unitNumber} <span className="ev-qdp__sep">/</span> {topicName}
-          </span>
+          <span className="ev-qdp__path mono">{subjectName} <span className="ev-qdp__sep">/</span> Unit {unitNumber}</span>
           <PriorityBadge priority={priority} />
         </div>
-
-        <h1 className="ev-qdp__question">{text}</h1>
-
+        <h1 className="ev-qdp__question">{questionText}</h1>
         <div className="ev-qdp__stats">
-          <div className="ev-qdp__stat">
-            <span className="ev-qdp__stat-label mono">Marks</span>
-            <span className="ev-qdp__stat-value">{marks}</span>
-          </div>
-          <div className="ev-qdp__stat">
-            <span className="ev-qdp__stat-label mono">Year Asked</span>
-            <span className="ev-qdp__stat-value">{year}</span>
-          </div>
-          <div className="ev-qdp__stat">
-            <span className="ev-qdp__stat-label mono">Frequency</span>
-            <FrequencyBar frequency={frequency} size="lg" />
-          </div>
-          <div className="ev-qdp__stat">
-            <span className="ev-qdp__stat-label mono">Priority</span>
-            <PriorityBadge priority={priority} />
-          </div>
+          <div className="ev-qdp__stat"><span className="ev-qdp__stat-label mono">Marks</span><span className="ev-qdp__stat-value">{marks ?? 'N/A'}</span></div>
+          <div className="ev-qdp__stat"><span className="ev-qdp__stat-label mono">Years Asked</span><span className="ev-qdp__stat-value">{years.length ? years.join(' • ') : 'None'}</span></div>
+          <div className="ev-qdp__stat"><span className="ev-qdp__stat-label mono">Frequency</span><span className="ev-qdp__stat-value">{years.length} {years.length === 1 ? 'time' : 'times'}</span></div>
+          <div className="ev-qdp__stat"><span className="ev-qdp__stat-label mono">Question Type</span><span className="ev-qdp__stat-value">{questionType || 'theory'}</span></div>
         </div>
-
-        <div className="ev-qdp__actions">
-          <Button to={`/question/${id}/pdf`} variant="primary" size="lg">
-            View PDF
-          </Button>
-          <Button href={pdfUrl} download variant="secondary" size="lg">
-            Download PDF
-          </Button>
-        </div>
+        {source && <div className="ev-qdp__actions"><span className="mono">Source: {source}</span></div>}
       </div>
 
-      {related.length > 0 && (
-        <div className="ev-qdp__related">
-          <h2>More from "{topicName}"</h2>
-          <div className="ev-qdp__related-list">
-            {related.map((q) => (
-              <QuestionCard key={q.id || q._id} question={q} />
-            ))}
-          </div>
-        </div>
-      )}
-
-      <Link to={`/subjects/${subjectSlug}/${unitSlug}/${topicSlug}`} className="ev-qdp__back mono">
-        ← Back to {topicName} questions
-      </Link>
+      {related.length > 0 && <div className="ev-qdp__related"><h2>More from Unit {unitNumber}</h2><div className="ev-qdp__related-list">{related.map((item) => <QuestionCard key={item._id || item.id} question={item} />)}</div></div>}
+      <Link to={`/subjects/${subjectSlug}/${unitSlug}`} className="ev-qdp__back mono">Back to Unit {unitNumber}</Link>
     </div>
   )
 }

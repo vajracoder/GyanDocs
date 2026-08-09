@@ -17,7 +17,7 @@ const FEATURES = [
   },
   {
     title: 'Smart Search',
-    description: 'Type a topic, keyword or unit — GyanDoc ranks results by relevance instantly.',
+    description: 'Type a keyword or unit — GyanDoc ranks results by relevance instantly.',
     icon: (
       <svg width="20" height="20" viewBox="0 0 24 24" fill="none">
         <circle cx="11" cy="11" r="7" stroke="currentColor" strokeWidth="1.6" />
@@ -27,7 +27,7 @@ const FEATURES = [
   },
   {
     title: 'Advanced Filters',
-    description: 'Narrow down by subject, unit, topic or year to find exactly what you need.',
+    description: 'Narrow down by subject, unit or year to find exactly what you need.',
     icon: (
       <svg width="20" height="20" viewBox="0 0 24 24" fill="none">
         <path d="M4 6h16M7 12h10M10 18h4" stroke="currentColor" strokeWidth="1.6" strokeLinecap="round" />
