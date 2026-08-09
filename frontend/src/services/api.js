@@ -12,7 +12,7 @@ const api = axios.create({
 // ==========================
 
 export const getSubjects = () =>
-  api.get("/subjects").then((res) => res.data);
+  api.get("/subjects").then((res) => res.data.data);
 
 export const createSubject = (data) =>
   api.post("/subjects", data).then((res) => res.data);
