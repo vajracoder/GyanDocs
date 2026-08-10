@@ -29,3 +29,44 @@ border-radius:8px;
 cursor:pointer;
 
 }
+
+.menu-btn{
+  display: none;
+  align-items: center;
+  justify-content: center;
+  font-size: 24px;
+}
+
+.topbar-left{
+  display: flex;
+  align-items: center;
+  gap: 12px;
+  min-width: 0;
+}
+
+@media (max-width: 768px) {
+  .topbar{
+    padding: 14px 16px;
+    flex-wrap: wrap;
+    gap: 8px;
+  }
+
+  .menu-btn{
+    display: inline-flex;
+    background: transparent;
+    color: #111827;
+    padding: 6px;
+    line-height: 1;
+  }
+
+  .topbar-left{
+    flex: 1;
+    min-width: 0;
+  }
+
+  .topbar-left > div{
+    overflow: hidden;
+    text-overflow: ellipsis;
+    white-space: nowrap;
+  }
+}

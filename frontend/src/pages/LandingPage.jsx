@@ -1,3 +1,4 @@
+import { Link } from 'react-router-dom'
 import SearchBar from '../components/ui/SearchBar.jsx'
 import './LandingPage.css'
 
@@ -7,6 +8,7 @@ const FEATURES = [
   {
     title: 'Previous Year Papers',
     description: 'Every past question, organized by university, course, branch, semester and subject.',
+    to: '/subjects',
     icon: (
       <svg width="20" height="20" viewBox="0 0 24 24" fill="none">
         <path d="M7 3h7l5 5v13a1 1 0 0 1-1 1H7a1 1 0 0 1-1-1V4a1 1 0 0 1 1-1Z" stroke="currentColor" strokeWidth="1.6" strokeLinejoin="round" />
@@ -18,6 +20,7 @@ const FEATURES = [
   {
     title: 'Smart Search',
     description: 'Type a keyword or unit — GyanDoc ranks results by relevance instantly.',
+    to: '/search',
     icon: (
       <svg width="20" height="20" viewBox="0 0 24 24" fill="none">
         <circle cx="11" cy="11" r="7" stroke="currentColor" strokeWidth="1.6" />
@@ -28,6 +31,7 @@ const FEATURES = [
   {
     title: 'Advanced Filters',
     description: 'Narrow down by subject, unit or year to find exactly what you need.',
+    to: '/search',
     icon: (
       <svg width="20" height="20" viewBox="0 0 24 24" fill="none">
         <path d="M4 6h16M7 12h10M10 18h4" stroke="currentColor" strokeWidth="1.6" strokeLinecap="round" />
@@ -84,11 +88,19 @@ export default function LandingPage() {
         <div className="container">
           <div className="ev-home-features__grid">
             {FEATURES.map((f) => (
-              <div className="ev-home-feature" key={f.title}>
-                <span className="ev-home-feature__icon" aria-hidden="true">{f.icon}</span>
-                <h3>{f.title}</h3>
-                <p>{f.description}</p>
-              </div>
+              f.to ? (
+                <Link to={f.to} className="ev-home-feature" key={f.title}>
+                  <span className="ev-home-feature__icon" aria-hidden="true">{f.icon}</span>
+                  <h3>{f.title}</h3>
+                  <p>{f.description}</p>
+                </Link>
+              ) : (
+                <div className="ev-home-feature" key={f.title}>
+                  <span className="ev-home-feature__icon" aria-hidden="true">{f.icon}</span>
+                  <h3>{f.title}</h3>
+                  <p>{f.description}</p>
+                </div>
+              )
             ))}
           </div>
         </div>

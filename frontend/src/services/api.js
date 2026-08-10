@@ -17,6 +17,9 @@ export const getSubjects = () =>
 export const createSubject = (data) =>
   api.post("/subjects", data).then((res) => res.data);
 
+export const updateSubject = (id, data) =>
+  api.put(`/subjects/${id}`, data).then((res) => res.data);
+
 export const getSubject = (slug) =>
   api.get(`/subjects/${slug}`).then((res) => res.data);
 
@@ -35,6 +38,9 @@ export const getUnit = (subjectSlug, unitSlug) =>
 
 export const createUnit = (data) =>
   api.post("/units", data).then((res) => res.data);
+
+export const updateUnit = (id, data) =>
+  api.put(`/units/${id}`, data).then((res) => res.data);
 
 // ==========================
 // QUESTIONS

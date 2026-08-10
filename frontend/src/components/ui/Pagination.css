@@ -10,3 +10,10 @@
 .ev-pagination__nav:disabled { opacity: 0.4; cursor: not-allowed; }
 .ev-pagination__page--active { background: var(--accent); border-color: var(--accent); color: #fff; }
 .ev-pagination__ellipsis { color: var(--muted); padding-inline: var(--sp-1); }
+
+@media (max-width: 480px) {
+  .ev-pagination {
+    gap: var(--sp-2);
+    flex-wrap: wrap;
+  }
+}

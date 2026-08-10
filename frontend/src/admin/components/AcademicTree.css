@@ -60,6 +60,20 @@
   align-items: center;
 }
 
+.edit-unit-btn {
+  padding: 4px 10px;
+  color: #1d4ed8;
+  background: #fff;
+  border: 1px solid #bfdbfe;
+  border-radius: 6px;
+  font-size: 0.8rem;
+  cursor: pointer;
+}
+
+.edit-unit-btn:hover {
+  background: #eff6ff;
+}
+
 .add-unit-btn {
   align-self: flex-start;
   margin-top: 8px;
@@ -79,6 +93,8 @@
 }
 
 .subject-header-actions { display: flex; align-items: center; gap: 14px; }
+.edit-subject-btn { padding: 6px 10px; color: #1d4ed8; background: #fff; border: 1px solid #bfdbfe; border-radius: 6px; font-size: 0.8rem; cursor: pointer; }
+.edit-subject-btn:hover { background: #eff6ff; }
 .delete-subject-btn { padding: 6px 10px; color: #b91c1c; background: #fff; border: 1px solid #fecaca; border-radius: 6px; font-size: 0.8rem; cursor: pointer; }
 .delete-subject-btn:hover { background: #fef2f2; }
 

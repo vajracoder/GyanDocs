@@ -84,6 +84,11 @@
   transition: background var(--t-fast) var(--ease);
 }
 
+a.ev-home-feature {
+  cursor: pointer;
+  text-decoration: none;
+}
+
 .ev-home-feature:hover {
   background: var(--accent-soft);
 }

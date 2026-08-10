@@ -41,7 +41,7 @@ export default function PdfImport() {
       try {
         setLoadingSubjects(true);
         const res = await getSubjects();
-        setSubjects(res.data || []);
+        setSubjects(res || []);
       } catch {
         setError("Failed to load subjects. Please refresh.");
       } finally {

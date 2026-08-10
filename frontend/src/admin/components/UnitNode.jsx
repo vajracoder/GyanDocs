@@ -1,10 +1,12 @@
 import { useState } from "react";
 import QuestionList from "./QuestionList";
 import AddQuestionModal from "./AddQuestionModal";
+import EditUnitModal from "./EditUnitModal";
 
 export default function UnitNode({ unit, onUnitUpdated }) {
   const [expanded, setExpanded] = useState(false);
   const [showAddModal, setShowAddModal] = useState(false);
+  const [showEditModal, setShowEditModal] = useState(false);
   const [refreshKey, setRefreshKey] = useState(0);
 
   const handleSuccess = () => {
@@ -26,8 +28,20 @@ export default function UnitNode({ unit, onUnitUpdated }) {
             <p style={{ margin: "2px 0 0 0", color: "#374151" }}>{unit.name}</p>
           </div>
         </div>
-        <span style={{ fontSize: "0.875rem", color: "#6b7280" }}>
-          {unit.questionsCount || 0} Questions
+        <span style={{ display: "flex", alignItems: "center", gap: "10px" }}>
+          <button
+            type="button"
+            className="edit-unit-btn"
+            onClick={(e) => {
+              e.stopPropagation();
+              setShowEditModal(true);
+            }}
+          >
+            Edit
+          </button>
+          <span style={{ fontSize: "0.875rem", color: "#6b7280" }}>
+            {unit.questionsCount || 0} Questions
+          </span>
         </span>
       </div>
 
@@ -63,6 +77,13 @@ export default function UnitNode({ unit, onUnitUpdated }) {
         open={showAddModal}
         unit={unit}
         onClose={() => setShowAddModal(false)}
+        onSuccess={handleSuccess}
+      />
+
+      <EditUnitModal
+        open={showEditModal}
+        unit={unit}
+        onClose={() => setShowEditModal(false)}
         onSuccess={handleSuccess}
       />
     </div>

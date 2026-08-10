@@ -17,6 +17,7 @@ import QuestionDetailsPage from "./pages/QuestionDetailsPage.jsx";
 // =======================
 import Login from "./admin/pages/Login.jsx";
 import Dashboard from "./admin/pages/Dashboard.jsx";
+import AcademicManager from "./admin/pages/AcademicManager.jsx";
 import Subjects from "./admin/pages/Subjects.jsx";
 import Units from "./admin/pages/Units.jsx";
 import Questions from "./admin/pages/Questions.jsx";
@@ -79,6 +80,10 @@ const router = createBrowserRouter([
       {
         path: "dashboard",
         element: <Dashboard />,
+      },
+      {
+        path: "academic-manager",
+        element: <AcademicManager />,
       },
       {
         path: "subjects",

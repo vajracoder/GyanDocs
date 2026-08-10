@@ -29,6 +29,11 @@ exports.parsePdf = async (req, res) => {
     if (fs.existsSync(filePath)) fs.unlinkSync(filePath);
 
     const text = result.text || "";
+    console.log("=== PDF IMPORT DIAGNOSTIC ===");
+    console.log("Extracted text length:", text.length);
+    console.log("First 1000 characters:");
+    console.log(text.slice(0, 1000));
+    console.log("=== END PDF IMPORT DIAGNOSTIC ===");
     const pages = result.total || 1;
     const { detectedYear, questions } = parsePdfText(text);
 

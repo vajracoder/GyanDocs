@@ -102,11 +102,104 @@
   font-size: var(--fs-xs);
 }
 
+/* ---------------- ADVANCED FILTERS ---------------- */
+.ev-search-page__filters {
+  width: 100%;
+  margin-top: var(--sp-8);
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  gap: var(--sp-4);
+  background: var(--surface);
+  border: 1px solid var(--border);
+  border-radius: var(--radius-lg);
+  padding: var(--sp-6);
+}
+
+.ev-search-page__filters-grid {
+  width: 100%;
+  display: grid;
+  grid-template-columns: repeat(2, 1fr);
+  gap: var(--sp-4);
+}
+
+.ev-search-page__filter-field {
+  display: flex;
+  flex-direction: column;
+  align-items: flex-start;
+  gap: var(--sp-2);
+  text-align: left;
+}
+
+.ev-search-page__filter-field > span {
+  font-size: var(--fs-xs);
+  letter-spacing: 0.06em;
+  text-transform: uppercase;
+  color: var(--muted);
+}
+
+.ev-search-page__filter-field select {
+  width: 100%;
+  background: var(--surface);
+  border: 1px solid var(--border);
+  border-radius: var(--radius-md);
+  padding: var(--sp-2) var(--sp-3);
+  font-size: var(--fs-sm);
+  color: var(--ink-soft);
+  transition: border-color var(--t-fast) var(--ease);
+}
+
+.ev-search-page__filter-field select:focus {
+  outline: none;
+  border-color: var(--accent);
+}
+
+.ev-search-page__filter-field select:disabled {
+  opacity: 0.5;
+  cursor: not-allowed;
+}
+
+.ev-search-page__filters-actions {
+  display: flex;
+  gap: var(--sp-3);
+  margin-top: var(--sp-2);
+}
+
+.ev-search-page__filter-btn {
+  background: var(--accent);
+  color: var(--accent-ink);
+  border: 1px solid var(--accent);
+  border-radius: var(--radius-md);
+  padding: var(--sp-2) var(--sp-5);
+  font-size: var(--fs-sm);
+  font-weight: 600;
+  cursor: pointer;
+  transition: background var(--t-fast) var(--ease), transform var(--t-fast) var(--ease);
+}
+
+.ev-search-page__filter-btn:hover {
+  transform: translateY(-1px);
+}
+
+.ev-search-page__filter-btn--ghost {
+  background: var(--surface);
+  color: var(--ink-soft);
+  border-color: var(--border);
+}
+
+.ev-search-page__filter-btn--ghost:hover {
+  border-color: var(--accent);
+  color: var(--ink);
+}
+
 @media (max-width: 640px) {
   .ev-search-page__title {
     font-size: var(--fs-2xl);
   }
   .ev-search-page__subject-grid {
+    grid-template-columns: 1fr;
+  }
+  .ev-search-page__filters-grid {
     grid-template-columns: 1fr;
   }
 }

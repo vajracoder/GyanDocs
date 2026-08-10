@@ -2,7 +2,7 @@ import { useNavigate } from "react-router-dom";
 import { useAuth } from "../../context/AuthContext";
 import "./AdminTopbar.css";
 
-export default function AdminTopbar(){
+export default function AdminTopbar({ onToggle }){
 
     const {currentUser,logout}=useAuth();
 
@@ -20,15 +20,28 @@ export default function AdminTopbar(){
 
         <header className="topbar">
 
-            <div>
+            <div className="topbar-left">
 
-                Welcome,
+                <button
+                    type="button"
+                    className="menu-btn"
+                    onClick={onToggle}
+                    aria-label="Toggle admin navigation"
+                >
+                    ☰
+                </button>
 
-                <strong>
+                <div>
 
-                    {currentUser?.email}
+                    Welcome,
 
-                </strong>
+                    <strong>
+
+                        {currentUser?.email}
+
+                    </strong>
+
+                </div>
 
             </div>
 

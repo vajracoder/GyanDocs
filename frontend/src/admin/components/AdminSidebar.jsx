@@ -1,35 +1,40 @@
-import { NavLink } from "react-router-dom";
+import { NavLink, useNavigate } from "react-router-dom";
+import { useAuth } from "../../context/AuthContext";
 import "./AdminSidebar.css";
 
-export default function AdminSidebar() {
+export default function AdminSidebar({ open, onClose }) {
+  const { logout } = useAuth();
+  const navigate = useNavigate();
+
+  async function handleLogout() {
+    await logout();
+    navigate("/admin/login");
+  }
+
   return (
-    <aside className="sidebar">
+    <aside className={open ? "sidebar sidebar--open" : "sidebar"}>
       <div className="sidebar-logo">
         GyanDocs
       </div>
 
       <nav>
 
-        <NavLink to="/admin/dashboard">
+        <NavLink to="/admin/dashboard" onClick={onClose}>
           🏠 Dashboard
         </NavLink>
 
-        <NavLink to="/admin/dashboard">
+        <NavLink to="/admin/academic-manager" onClick={onClose}>
           📚 Academic Manager
         </NavLink>
 
-        <NavLink to="/admin/pdf-import">
+        <NavLink to="/admin/pdf-import" onClick={onClose}>
           📄 PDF Import
-        </NavLink>
-
-        <NavLink to="/admin/settings">
-          ⚙ Settings
         </NavLink>
 
       </nav>
 
       <div className="sidebar-footer">
-        <button className="logout-btn">
+        <button className="logout-btn" onClick={handleLogout}>
           🚪 Logout
         </button>
       </div>

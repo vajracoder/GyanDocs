@@ -2,12 +2,14 @@ import { useState } from "react";
 import { deleteSubject, getUnits } from "../../services/api";
 import UnitNode from "./UnitNode";
 import AddUnitModal from "./AddUnitModal";
+import EditSubjectModal from "./EditSubjectModal";
 
-export default function SubjectNode({ subject, onSubjectDeleted }) {
+export default function SubjectNode({ subject, onSubjectDeleted, onSubjectUpdated }) {
   const [expanded, setExpanded] = useState(false);
   const [units, setUnits] = useState([]);
   const [loading, setLoading] = useState(false);
   const [showUnitModal, setShowUnitModal] = useState(false);
+  const [showEditModal, setShowEditModal] = useState(false);
   const [showDeleteConfirm, setShowDeleteConfirm] = useState(false);
   const [deleting, setDeleting] = useState(false);
   const [deleteError, setDeleteError] = useState("");
@@ -58,6 +60,7 @@ export default function SubjectNode({ subject, onSubjectDeleted }) {
             <small>{subject.name} • Semester {subject.semester}</small>
           </div>
           <div className="subject-header-actions">
+            <button type="button" className="edit-subject-btn" onClick={(e) => { e.stopPropagation(); setShowEditModal(true); }}>Edit</button>
             <button type="button" className="delete-subject-btn" onClick={requestDelete}>Delete</button>
             <span>{expanded ? "▼" : "▶"}</span>
           </div>
@@ -74,6 +77,16 @@ export default function SubjectNode({ subject, onSubjectDeleted }) {
       </div>
 
       <AddUnitModal open={showUnitModal} subject={subject} onClose={() => setShowUnitModal(false)} onSuccess={loadUnits} />
+
+      <EditSubjectModal
+        open={showEditModal}
+        subject={subject}
+        onClose={() => setShowEditModal(false)}
+        onSuccess={(updatedSubject) => {
+          const name = updatedSubject?.name || subject.name;
+          onSubjectUpdated?.(name);
+        }}
+      />
 
       {showDeleteConfirm && (
         <div className="subject-delete-overlay" role="presentation">
