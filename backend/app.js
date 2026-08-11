@@ -1,15 +1,29 @@
 const express = require("express");
 const cors = require("cors");
+const helmet = require("helmet");
 const {
   generalLimiter,
   searchLimiter,
   pdfLimiter,
 } = require("./middleware/rateLimiters");
+const { errorHandler } = require("./middleware/errorHandler");
 
 const app = express();
 
 // Trust proxy - the backend runs behind a hosting reverse proxy
 app.set("trust proxy", 1);
+
+// Security headers (Helmet defaults).
+// HSTS is environment-aware: enabled in production, disabled in development
+// so plain-HTTP local development is not broken.
+app.use(
+  helmet({
+    hsts:
+      process.env.NODE_ENV === "production"
+        ? { maxAge: 15552000, includeSubDomains: false, preload: false }
+        : false,
+  })
+);
 
 // Production frontend origin + development localhost origins
 const allowedOrigins = [
@@ -58,16 +72,17 @@ app.use('/api/questions', require('./routes/questionRoutes'));
 app.use('/api/search', require('./routes/searchRoutes'));
 app.use('/api/pdf', require('./routes/pdfRoutes'));
 
-// Minimal error handler: return a clean JSON response for CORS rejections
-// without exposing stack traces or internal details.
-app.use((err, req, res, next) => {
-  if (err && err.status === 403) {
-    return res.status(403).json({
-      success: false,
-      message: "Origin not allowed",
-    });
-  }
-  next(err);
+// 404 handler for unknown API routes.
+app.use("/api", (req, res) => {
+  res.status(404).json({
+    success: false,
+    message: "API route not found.",
+  });
 });
+
+// Global error handler: maps known errors to safe messages and logs
+// diagnostic detail server-side only. Never exposes stack traces,
+// credentials, MongoDB internals, or filesystem paths to clients.
+app.use(errorHandler);
 
 module.exports = app;

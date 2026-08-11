@@ -1,6 +1,18 @@
 const Question = require("../models/Question");
 const Unit = require("../models/Unit");
 const { calculatePriority } = require("../utils/priorityHelper");
+const { normalizeError } = require("../middleware/errorHandler");
+const {
+  escapeRegex,
+  validateObjectId,
+  validateInteger,
+  validateSearch,
+  validateQuestionType,
+  VALID_PRIORITY_MIN,
+  VALID_PRIORITY_MAX,
+  VALID_YEAR_MIN,
+  VALID_YEAR_MAX,
+} = require("../utils/queryValidation");
 
 // Helper to clean, deduplicate, sort years descending and calculate priority
 const processYearsAndPriority = (rawYears) => {
@@ -35,42 +47,69 @@ exports.getQuestions = async (req, res) => {
   try {
     const { subjectId, unitId, year, priority, questionType, search, isActive } = req.query;
 
+    // Explicitly validate every filter parameter. Never pass req.query into
+    // Mongoose directly — this prevents query-object injection (?year[$ne]=...).
     const filter = {};
 
     if (isActive !== undefined) {
+      if (typeof isActive !== "string" || !["true", "false"].includes(isActive)) {
+        return res.status(400).json({ success: false, message: "Invalid isActive." });
+      }
       filter.isActive = isActive === "true";
     } else {
       filter.isActive = true;
     }
 
-    if (subjectId) {
-      filter.subjectId = subjectId;
-    }
-
-    if (unitId) {
-      filter.unitId = unitId;
-    }
-
-    if (year) {
-      const yearNum = Number(year);
-      if (!isNaN(yearNum)) {
-        filter.years = yearNum;
+    if (subjectId !== undefined) {
+      const result = validateObjectId(subjectId, "subject ID");
+      if (!result.valid) {
+        return res.status(400).json({ success: false, message: result.error });
       }
+      filter.subjectId = result.value;
     }
 
-    if (priority) {
-      const prioNum = Number(priority);
-      if (!isNaN(prioNum)) {
-        filter.priority = prioNum;
+    if (unitId !== undefined) {
+      const result = validateObjectId(unitId, "unit ID");
+      if (!result.valid) {
+        return res.status(400).json({ success: false, message: result.error });
       }
+      filter.unitId = result.value;
     }
 
-    if (questionType) {
-      filter.questionType = questionType;
+    if (year !== undefined) {
+      const result = validateInteger(year, "year", VALID_YEAR_MIN, VALID_YEAR_MAX);
+      if (!result.valid) {
+        return res.status(400).json({ success: false, message: result.error });
+      }
+      filter.years = result.value;
     }
 
-    if (search && search.trim() !== "") {
-      filter.questionText = { $regex: search.trim(), $options: "i" };
+    if (priority !== undefined) {
+      const result = validateInteger(priority, "priority", VALID_PRIORITY_MIN, VALID_PRIORITY_MAX);
+      if (!result.valid) {
+        return res.status(400).json({ success: false, message: result.error });
+      }
+      filter.priority = result.value;
+    }
+
+    if (questionType !== undefined) {
+      const result = validateQuestionType(questionType);
+      if (!result.valid) {
+        return res.status(400).json({ success: false, message: result.error });
+      }
+      filter.questionType = result.value;
+    }
+
+    if (search !== undefined) {
+      const result = validateSearch(search);
+      if (!result.valid) {
+        return res.status(400).json({ success: false, message: result.error });
+      }
+      if (result.value !== "") {
+        // Escape the user input so it is treated as a literal substring,
+        // never as an attacker-controlled regex pattern (ReDoS protection).
+        filter.questionText = { $regex: escapeRegex(result.value), $options: "i" };
+      }
     }
 
     const questions = await Question.find(filter)
@@ -84,9 +123,10 @@ exports.getQuestions = async (req, res) => {
       data: questions,
     });
   } catch (error) {
-    res.status(500).json({
+    const { status, message } = normalizeError(error);
+    res.status(status).json({
       success: false,
-      message: error.message,
+      message,
     });
   }
 };
@@ -112,9 +152,10 @@ exports.getQuestionById = async (req, res) => {
       data: question,
     });
   } catch (error) {
-    res.status(500).json({
+    const { status, message } = normalizeError(error);
+    res.status(status).json({
       success: false,
-      message: error.message,
+      message,
     });
   }
 };
@@ -180,9 +221,10 @@ exports.createQuestion = async (req, res) => {
       data: populatedQuestion,
     });
   } catch (error) {
-    res.status(400).json({
+    const { status, message } = normalizeError(error);
+    res.status(status).json({
       success: false,
-      message: error.message,
+      message,
     });
   }
 };
@@ -190,6 +232,20 @@ exports.createQuestion = async (req, res) => {
 // ==============================
 // UPDATE QUESTION
 // ==============================
+// Explicit allowlist of fields the admin may edit.
+// System/derived fields (_id, isActive, priority, counters, timestamps)
+// are never accepted from the client.
+const QUESTION_UPDATE_ALLOWLIST = [
+  "questionText",
+  "subjectId",
+  "unitId",
+  "years",
+  "marks",
+  "questionType",
+  "answer",
+  "source",
+];
+
 exports.updateQuestion = async (req, res) => {
   try {
     const existingQuestion = await Question.findById(req.params.id);
@@ -201,7 +257,13 @@ exports.updateQuestion = async (req, res) => {
       });
     }
 
-    const updateData = { ...req.body };
+    // Build a sanitized update object from the allowlist only.
+    const updateData = {};
+    for (const field of QUESTION_UPDATE_ALLOWLIST) {
+      if (req.body[field] !== undefined) {
+        updateData[field] = req.body[field];
+      }
+    }
 
     // Validate required fields if passed
     if (updateData.questionText !== undefined) {
@@ -260,9 +322,10 @@ exports.updateQuestion = async (req, res) => {
       data: updatedQuestion,
     });
   } catch (error) {
-    res.status(400).json({
+    const { status, message } = normalizeError(error);
+    res.status(status).json({
       success: false,
-      message: error.message,
+      message,
     });
   }
 };
@@ -289,9 +352,10 @@ exports.deleteQuestion = async (req, res) => {
       message: "Question deleted successfully",
     });
   } catch (error) {
-    res.status(500).json({
+    const { status, message } = normalizeError(error);
+    res.status(status).json({
       success: false,
-      message: error.message,
+      message,
     });
   }
 };

@@ -3,53 +3,76 @@ const router = express.Router();
 const multer = require("multer");
 const path = require("path");
 const fs = require("fs");
+const crypto = require("crypto");
 const authMiddleware = require("../middleware/authMiddleware");
 const adminMiddleware = require("../middleware/adminMiddleware");
 const { parsePdf, importPdf } = require("../controllers/pdfController");
 
-// Ensure temporary uploads directory exists
+// ────────────────────────────────────────────────────────────
+// Upload directory (temporary processing files only)
+// ────────────────────────────────────────────────────────────
 const uploadDir = path.join(__dirname, "../uploads");
 if (!fs.existsSync(uploadDir)) {
   fs.mkdirSync(uploadDir, { recursive: true });
 }
 
-// Disk storage for temporary file processing
+// ────────────────────────────────────────────────────────────
+// File size limit (configurable via env, default 10 MB)
+// ────────────────────────────────────────────────────────────
+const pdfMaxSizeMb = Number(process.env.PDF_MAX_SIZE_MB) || 10;
+const pdfMaxSizeBytes = pdfMaxSizeMb * 1024 * 1024;
+
+// ────────────────────────────────────────────────────────────
+// Disk storage: always generate a safe server-side filename.
+// The user-provided original filename is NEVER used as a path.
+// ────────────────────────────────────────────────────────────
 const storage = multer.diskStorage({
   destination: (req, file, cb) => {
     cb(null, uploadDir);
   },
   filename: (req, file, cb) => {
-    const uniqueSuffix = Date.now() + "-" + Math.round(Math.random() * 1e9);
-    const ext = path.extname(file.originalname);
-    cb(null, `pdf-${uniqueSuffix}${ext}`);
+    // Random 16-byte hex + fixed .pdf extension.
+    // No user input, no path separators, no shell characters.
+    const randomName = crypto.randomBytes(16).toString("hex");
+    cb(null, `pdf-${randomName}.pdf`);
   },
 });
 
-// Filter to accept only PDF files
+// ────────────────────────────────────────────────────────────
+// First-pass filter: reject obvious non-PDF uploads.
+// This is NOT the sole validation — the actual PDF signature is
+// verified in the controller before parsing.
+// ────────────────────────────────────────────────────────────
 const fileFilter = (req, file, cb) => {
-  const isPdf =
-    file.mimetype === "application/pdf" ||
-    file.originalname.toLowerCase().endsWith(".pdf");
+  const isPdfMime = file.mimetype === "application/pdf";
+  const isPdfExt = file.originalname.toLowerCase().endsWith(".pdf");
 
-  if (isPdf) {
+  // Accept if MIME or extension indicates PDF. The signature check
+  // in the controller is the authoritative validation.
+  if (isPdfMime || isPdfExt) {
     cb(null, true);
   } else {
-    const err = new Error("Only PDF files are allowed.");
+    const err = new Error("Invalid PDF file.");
     err.code = "INVALID_FILE_TYPE";
     cb(err, false);
   }
 };
 
-// Multer upload config: 20 MB max file size, field name "pdf"
+// ────────────────────────────────────────────────────────────
+// Multer upload config: field name "pdf"
+// ────────────────────────────────────────────────────────────
 const upload = multer({
   storage,
   fileFilter,
   limits: {
-    fileSize: 20 * 1024 * 1024, // 20 MB limit
+    fileSize: pdfMaxSizeBytes,
+    files: 1,
   },
 }).single("pdf");
 
+// ────────────────────────────────────────────────────────────
 // POST /api/pdf/parse
+// ────────────────────────────────────────────────────────────
 router.post(
   "/parse",
   authMiddleware,
@@ -57,15 +80,28 @@ router.post(
   (req, res, next) => {
     upload(req, res, (err) => {
       if (err) {
+        // Clean multer error handling — no stack traces exposed.
         if (err.code === "LIMIT_FILE_SIZE") {
+          return res.status(413).json({
+            success: false,
+            message: "PDF file is too large.",
+          });
+        }
+        if (err.code === "INVALID_FILE_TYPE") {
           return res.status(400).json({
             success: false,
-            message: "File size exceeds the 20 MB limit.",
+            message: "Invalid PDF file.",
+          });
+        }
+        if (err.code === "LIMIT_UNEXPECTED_FILE") {
+          return res.status(400).json({
+            success: false,
+            message: "Unexpected file field.",
           });
         }
         return res.status(400).json({
           success: false,
-          message: err.message || "File upload failed.",
+          message: "File upload failed.",
         });
       }
       next();
@@ -74,7 +110,9 @@ router.post(
   parsePdf
 );
 
+// ────────────────────────────────────────────────────────────
 // POST /api/pdf/import
+// ────────────────────────────────────────────────────────────
 router.post("/import", authMiddleware, adminMiddleware, importPdf);
 
 module.exports = router;

@@ -1,4 +1,5 @@
 const Unit = require("../models/Unit");
+const { normalizeError } = require("../middleware/errorHandler");
 
 // ==============================
 // GET Units by Subject
@@ -27,9 +28,10 @@ exports.getUnitsBySubject = async (req, res) => {
       data: units,
     });
   } catch (error) {
-    res.status(500).json({
+    const { status, message } = normalizeError(error);
+    res.status(status).json({
       success: false,
-      message: error.message,
+      message,
     });
   }
 };
@@ -53,9 +55,10 @@ exports.getUnitById = async (req, res) => {
       data: unit,
     });
   } catch (error) {
-    res.status(500).json({
+    const { status, message } = normalizeError(error);
+    res.status(status).json({
       success: false,
-      message: error.message,
+      message,
     });
   }
 };
@@ -63,9 +66,34 @@ exports.getUnitById = async (req, res) => {
 // ==============================
 // CREATE UNIT
 // ==============================
+// Explicit allowlist for create. subjectId is required at creation time
+// (the admin UI selects the parent subject); system/derived fields are
+// never accepted from the client.
+const UNIT_CREATE_ALLOWLIST = [
+  "subjectId",
+  "unitNumber",
+  "name",
+  "slug",
+  "description",
+];
+
+// ==============================
+// UPDATE UNIT
+// ==============================
+// The admin UI deliberately does NOT expose subjectId on edit, so it is
+// excluded here. Only unitNumber, name, slug, and description are editable.
+const UNIT_UPDATE_ALLOWLIST = ["unitNumber", "name", "slug", "description"];
+
 exports.createUnit = async (req, res) => {
   try {
-    const unit = await Unit.create(req.body);
+    const unitData = {};
+    for (const field of UNIT_CREATE_ALLOWLIST) {
+      if (req.body[field] !== undefined) {
+        unitData[field] = req.body[field];
+      }
+    }
+
+    const unit = await Unit.create(unitData);
 
     res.status(201).json({
       success: true,
@@ -73,28 +101,26 @@ exports.createUnit = async (req, res) => {
       data: unit,
     });
   } catch (error) {
-    if (error.code === 11000) {
-      return res.status(400).json({
-        success: false,
-        message: "Unit number already exists for this subject.",
-      });
-    }
-
-    res.status(400).json({
+    const { status, message } = normalizeError(error);
+    res.status(status).json({
       success: false,
-      message: error.message,
+      message,
     });
   }
 };
 
-// ==============================
-// UPDATE UNIT
-// ==============================
 exports.updateUnit = async (req, res) => {
   try {
+    const updates = {};
+    for (const field of UNIT_UPDATE_ALLOWLIST) {
+      if (req.body[field] !== undefined) {
+        updates[field] = req.body[field];
+      }
+    }
+
     const unit = await Unit.findByIdAndUpdate(
       req.params.id,
-      req.body,
+      updates,
       {
         new: true,
         runValidators: true,
@@ -114,16 +140,10 @@ exports.updateUnit = async (req, res) => {
       data: unit,
     });
   } catch (error) {
-    if (error.code === 11000) {
-      return res.status(400).json({
-        success: false,
-        message: "Unit number already exists for this subject.",
-      });
-    }
-
-    res.status(400).json({
+    const { status, message } = normalizeError(error);
+    res.status(status).json({
       success: false,
-      message: error.message,
+      message,
     });
   }
 };
@@ -147,9 +167,10 @@ exports.deleteUnit = async (req, res) => {
       message: "Unit deleted successfully",
     });
   } catch (error) {
-    res.status(500).json({
+    const { status, message } = normalizeError(error);
+    res.status(status).json({
       success: false,
-      message: error.message,
+      message,
     });
   }
 };

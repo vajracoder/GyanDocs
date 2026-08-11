@@ -1,6 +1,7 @@
 const Subject = require("../models/Subject");
 const Unit = require("../models/Unit");
 const Question = require("../models/Question");
+const { normalizeError } = require("../middleware/errorHandler");
 
 // ==============================
 // GET ALL SUBJECTS
@@ -26,9 +27,10 @@ exports.getAllSubjects = async (req, res) => {
       data: subjects,
     });
   } catch (error) {
-    res.status(500).json({
+    const { status, message } = normalizeError(error);
+    res.status(status).json({
       success: false,
-      message: error.message,
+      message,
     });
   }
 };
@@ -52,9 +54,10 @@ exports.getSubjectById = async (req, res) => {
       data: subject,
     });
   } catch (error) {
-    res.status(500).json({
+    const { status, message } = normalizeError(error);
+    res.status(status).json({
       success: false,
-      message: error.message,
+      message,
     });
   }
 };
@@ -88,19 +91,10 @@ exports.createSubject = async (req, res) => {
       data: subject,
     });
   } catch (error) {
-    // Duplicate key (unique index)
-    if (error.code === 11000) {
-      const field = Object.keys(error.keyPattern)[0];
-
-      return res.status(400).json({
-        success: false,
-        message: `${field} already exists.`,
-      });
-    }
-
-    res.status(400).json({
+    const { status, message } = normalizeError(error);
+    res.status(status).json({
       success: false,
-      message: error.message,
+      message,
     });
   }
 };
@@ -108,11 +102,31 @@ exports.createSubject = async (req, res) => {
 // ==============================
 // UPDATE SUBJECT
 // ==============================
+// Explicit allowlist of fields the admin UI may edit.
+// System/derived fields (_id, isActive, counters, timestamps) are never accepted.
+const SUBJECT_UPDATE_ALLOWLIST = [
+  "semester",
+  "name",
+  "shortName",
+  "code",
+  "slug",
+  "description",
+];
+
 exports.updateSubject = async (req, res) => {
   try {
+    // Build a sanitized update object: only allowlisted fields are read from req.body.
+    // Undefined optional fields are skipped so partial updates keep working.
+    const updates = {};
+    for (const field of SUBJECT_UPDATE_ALLOWLIST) {
+      if (req.body[field] !== undefined) {
+        updates[field] = req.body[field];
+      }
+    }
+
     const subject = await Subject.findByIdAndUpdate(
       req.params.id,
-      req.body,
+      updates,
       {
         new: true,
         runValidators: true,
@@ -132,18 +146,10 @@ exports.updateSubject = async (req, res) => {
       data: subject,
     });
   } catch (error) {
-    if (error.code === 11000) {
-      const field = Object.keys(error.keyPattern)[0];
-
-      return res.status(400).json({
-        success: false,
-        message: `${field} already exists.`,
-      });
-    }
-
-    res.status(400).json({
+    const { status, message } = normalizeError(error);
+    res.status(status).json({
       success: false,
-      message: error.message,
+      message,
     });
   }
 };
@@ -180,9 +186,10 @@ exports.deleteSubject = async (req, res) => {
       },
     });
   } catch (error) {
-    res.status(500).json({
+    const { status, message } = normalizeError(error);
+    res.status(status).json({
       success: false,
-      message: error.message,
+      message,
     });
   }
 };

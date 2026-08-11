@@ -6,6 +6,30 @@ const { PDFParse } = require("pdf-parse");
 const { parsePdfText } = require("../utils/questionParser");
 
 // ────────────────────────────────────────────────────────────
+// Validate PDF signature by inspecting actual file contents.
+// A valid PDF begins with "%PDF-" within the first 1024 bytes.
+// This is the authoritative check — MIME/extension are only hints.
+// ────────────────────────────────────────────────────────────
+const hasPdfSignature = (buffer) => {
+  const sample = buffer.slice(0, 1024);
+  return sample.includes(Buffer.from("%PDF-"));
+};
+
+// ────────────────────────────────────────────────────────────
+// Safely remove a temporary file if it exists.
+// Cleanup failures are logged server-side but never sent to the client.
+// ────────────────────────────────────────────────────────────
+const safeDelete = (filePath) => {
+  try {
+    if (filePath && fs.existsSync(filePath)) {
+      fs.unlinkSync(filePath);
+    }
+  } catch (err) {
+    console.error("Temporary file cleanup failed:", err.message);
+  }
+};
+
+// ────────────────────────────────────────────────────────────
 // parsePdf  (Step 3/4 — extraction only, no MongoDB writes)
 // ────────────────────────────────────────────────────────────
 exports.parsePdf = async (req, res) => {
@@ -22,18 +46,21 @@ exports.parsePdf = async (req, res) => {
   try {
     const dataBuffer = fs.readFileSync(filePath);
 
+    // Reject files that don't actually start with the PDF signature.
+    if (!hasPdfSignature(dataBuffer)) {
+      safeDelete(filePath);
+      return res.status(400).json({
+        success: false,
+        message: "Invalid PDF file.",
+      });
+    }
+
+    // Only validated PDF data reaches the parser.
     const parser = new PDFParse({ data: dataBuffer });
     await parser.load();
     const result = await parser.getText();
 
-    if (fs.existsSync(filePath)) fs.unlinkSync(filePath);
-
     const text = result.text || "";
-    console.log("=== PDF IMPORT DIAGNOSTIC ===");
-    console.log("Extracted text length:", text.length);
-    console.log("First 1000 characters:");
-    console.log(text.slice(0, 1000));
-    console.log("=== END PDF IMPORT DIAGNOSTIC ===");
     const pages = result.total || 1;
     const { detectedYear, questions } = parsePdfText(text);
 
@@ -45,14 +72,14 @@ exports.parsePdf = async (req, res) => {
       questions,
     });
   } catch (error) {
-    if (fs.existsSync(filePath)) {
-      try { fs.unlinkSync(filePath); } catch (_) {}
-    }
     console.error("PDF Parsing Error:", error.message);
     return res.status(400).json({
       success: false,
-      message: error.message || "Failed to parse PDF document.",
+      message: "Failed to parse PDF document.",
     });
+  } finally {
+    // Always remove the temporary file, whether parsing succeeded or failed.
+    safeDelete(filePath);
   }
 };
 

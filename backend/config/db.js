@@ -8,8 +8,9 @@ const connectDB = async () => {
 
     console.log(`✅ MongoDB connected: ${conn.connection.host}`);
   } catch (error) {
-    console.error("❌ MongoDB connection failed:");
-    console.error(error);
+    // Log a safe message only — never the full error object (may contain
+    // connection strings, credentials, or internal details).
+    console.error("❌ MongoDB connection failed:", error.message);
     throw error;
   }
 };

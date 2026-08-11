@@ -1,12 +1,18 @@
 const Question = require('../models/Question');
+const { normalizeError } = require('../middleware/errorHandler');
+const { escapeRegex, MAX_SEARCH_LENGTH } = require('../utils/queryValidation');
 
 exports.searchQuestions = async (req, res) => {
   try {
     const q = (req.query.q || '').trim();
     if (!q) return res.json([]);
+    if (q.length > MAX_SEARCH_LENGTH) {
+      return res.status(400).json({ message: 'Search query is too long.' });
+    }
 
     const unitMatch = q.match(/unit\s*0*(\d+)/i);
-    const regex = new RegExp(q, 'i');
+    // Treat user input as literal text — never as an executable regex pattern.
+    const regex = new RegExp(escapeRegex(q), 'i');
 
     const orConditions = [
       { topicName: regex },
@@ -31,6 +37,7 @@ exports.searchQuestions = async (req, res) => {
     scored.sort((a, b) => b.score - a.score || b.item.frequency - a.item.frequency);
     res.json(scored.map((s) => s.item));
   } catch (error) {
-    res.status(500).json({ message: error.message });
+    const { status, message } = normalizeError(error);
+    res.status(status).json({ message });
   }
 };

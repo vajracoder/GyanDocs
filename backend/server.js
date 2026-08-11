@@ -1,8 +1,5 @@
 require("dotenv").config();
 
-console.log("__dirname =", __dirname);
-console.log("MONGODB_URI =", process.env.MONGODB_URI);
-
 const app = require("./app");
 const connectDB = require("./config/db");
 
@@ -15,5 +12,6 @@ connectDB()
     });
   })
   .catch((err) => {
-    console.error("Failed to start server:", err);
+    // Log a safe startup error without exposing credentials or the URI.
+    console.error("Failed to start server:", err.message);
   });
