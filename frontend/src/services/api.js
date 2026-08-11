@@ -1,4 +1,5 @@
 import axios from "axios";
+import { auth } from "../firebase/firebase";
 
 const api = axios.create({
   baseURL: import.meta.env.VITE_API_URL || "http://localhost:5000/api",
@@ -6,6 +7,27 @@ const api = axios.create({
     "Content-Type": "application/json",
   },
 });
+
+// Attach a fresh Firebase ID token to every request when the user is authenticated.
+// Public GET requests continue to work without a token.
+api.interceptors.request.use(
+  async (config) => {
+    try {
+      if (auth && auth.currentUser) {
+        const idToken = await auth.currentUser.getIdToken();
+        if (idToken) {
+          config.headers.Authorization = `Bearer ${idToken}`;
+        }
+      }
+    } catch (err) {
+      // If token retrieval fails, send the request without an Authorization header.
+      // Protected endpoints will return 401, which is the expected behavior.
+      console.error("Failed to attach Firebase ID token:", err.message);
+    }
+    return config;
+  },
+  (error) => Promise.reject(error)
+);
 
 // ==========================
 // SUBJECTS

@@ -1,6 +1,9 @@
 const express = require("express");
 const router = express.Router();
 
+const authMiddleware = require("../middleware/authMiddleware");
+const adminMiddleware = require("../middleware/adminMiddleware");
+
 const {
   getQuestions,
   getQuestionById,
@@ -16,12 +19,12 @@ router.get("/", getQuestions);
 router.get("/:id", getQuestionById);
 
 // POST create question
-router.post("/", createQuestion);
+router.post("/", authMiddleware, adminMiddleware, createQuestion);
 
 // PUT update question
-router.put("/:id", updateQuestion);
+router.put("/:id", authMiddleware, adminMiddleware, updateQuestion);
 
 // DELETE question
-router.delete("/:id", deleteQuestion);
+router.delete("/:id", authMiddleware, adminMiddleware, deleteQuestion);
 
 module.exports = router;

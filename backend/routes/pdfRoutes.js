@@ -3,6 +3,8 @@ const router = express.Router();
 const multer = require("multer");
 const path = require("path");
 const fs = require("fs");
+const authMiddleware = require("../middleware/authMiddleware");
+const adminMiddleware = require("../middleware/adminMiddleware");
 const { parsePdf, importPdf } = require("../controllers/pdfController");
 
 // Ensure temporary uploads directory exists
@@ -50,6 +52,8 @@ const upload = multer({
 // POST /api/pdf/parse
 router.post(
   "/parse",
+  authMiddleware,
+  adminMiddleware,
   (req, res, next) => {
     upload(req, res, (err) => {
       if (err) {
@@ -71,6 +75,6 @@ router.post(
 );
 
 // POST /api/pdf/import
-router.post("/import", importPdf);
+router.post("/import", authMiddleware, adminMiddleware, importPdf);
 
 module.exports = router;
