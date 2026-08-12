@@ -225,6 +225,81 @@ assert(
 );
 
 // ═══════════════════════════════════════════════════════════
+// TEST 8: Real-world AKTU-style paper (a–j, "N M" marks/CO)
+// ═══════════════════════════════════════════════════════════
+console.log("\n8. Real-world AKTU-style paper (a–j, two-number marks/CO)");
+
+const REAL_WORLD_INPUT = `Attempt all questions in brief. 2 x 10 = 20
+
+a. What is the concept of keys in database? 2 1
+b. What is strong & weak entity set? 2 1
+c. Explain referential integrity. 2 2
+d. Explain entity integrity constraints. 2 2
+e. Write different inference rule for functional dependency? 2 3
+f. Why do we normalize database? 2 3
+g. What do you mean by testing of serializability? 2 4
+h. Define replication in distributed database. 2 4
+i. Define concurrency control. 2 5
+j. Define exclusive lock. 2 5
+
+SECTION B`;
+
+const parsedReal = parsePdfText(REAL_WORLD_INPUT);
+const realQs = parsedReal.questions;
+console.log(`  Extracted ${realQs.length} question(s):`);
+realQs.forEach((q, i) => {
+  console.log(`    [${i + 1}] text="${q.questionText}" marks=${q.marks} co=${q.co}`);
+});
+
+const expectedTexts = [
+  "What is the concept of keys in database?",
+  "What is strong & weak entity set?",
+  "Explain referential integrity.",
+  "Explain entity integrity constraints.",
+  "Write different inference rule for functional dependency?",
+  "Why do we normalize database?",
+  "What do you mean by testing of serializability?",
+  "Define replication in distributed database.",
+  "Define concurrency control.",
+  "Define exclusive lock.",
+];
+
+assert(realQs.length === 10, `Exactly 10 questions extracted (got ${realQs.length})`);
+
+expectedTexts.forEach((expected, idx) => {
+  const q = realQs[idx];
+  assert(q && q.questionText === expected, `Q${idx + 1} text matches: "${expected}"`);
+});
+
+const marksExpected = [2, 2, 2, 2, 2, 2, 2, 2, 2, 2];
+marksExpected.forEach((m, idx) => {
+  const q = realQs[idx];
+  assert(q && q.marks === m, `Q${idx + 1} marks=${m} (got ${q && q.marks})`);
+});
+
+const coExpected = [1, 1, 2, 2, 3, 3, 4, 4, 5, 5];
+coExpected.forEach((c, idx) => {
+  const q = realQs[idx];
+  assert(q && q.co === c, `Q${idx + 1} co=${c} (got ${q && q.co})`);
+});
+
+// ZERO instruction / header / trailing metadata in any questionText
+const hasMetadataInText = realQs.some((q) =>
+  /Attempt all|2 x 10|SECTION [A-D]|\s\d\s\d$/.test(q.questionText)
+);
+assert(!hasMetadataInText, "ZERO instruction/header/trailing-marks in all questionText");
+
+// Lettered markers f–j must be separate questions (no merge into e.)
+assert(
+  realQs[5] && realQs[5].questionText.startsWith("Why do we normalize"),
+  "Q6 (f.) is a separate question — f–j not merged"
+);
+assert(
+  realQs[9] && realQs[9].questionText.startsWith("Define exclusive lock"),
+  "Q10 (j.) is a separate question — j. is its own entry"
+);
+
+// ═══════════════════════════════════════════════════════════
 // SUMMARY
 // ═══════════════════════════════════════════════════════════
 console.log(`\n══════════════════════════════════════`);

@@ -70,6 +70,8 @@ const METADATA_PATTERNS = [
   /^answer\s+(any|all)\s/i,
   // Marks instructions
   /\d+\s*x\s*=\s*\d+/i,           // "07 x 1 = 07", "07 x 3 = 07"
+  // Section headings (SECTION A, SECTION B, ...)
+  /^section\s+[a-z]/i,
   // Table headings (Q no. / Question / CO / Level columns)
   /^q\s*no\.?\s+/i,
   /^(q\s*no\.?|question)\s*.*\b(co|level)\b/i,
@@ -111,6 +113,7 @@ const EMBEDDED_METADATA_PATTERNS = [
   /subject\s*code\s*:\s*[A-Z0-9]+/gi,
   /btech\s*\(sem\s*[IVX]+\)\s*theory\s*examination\s*20[0-9]{2}/gi,
   /^--\s*\d+\s*of\s*\d+\s*--/gm,
+  /\s+section\s+[a-z]\s*$/gi,
 ];
 
 // Strong page-break / footer markers. When encountered, we stop appending the
@@ -233,6 +236,16 @@ const extractTrailingMeta = (str) => {
     return { mark, co, level };
   }
 
+  // Pattern: trailing "<number> <number>" e.g. "2 1" → marks=2, CO=1
+  // AKTU-style two-number trailing metadata. Anchored to END of line/block so
+  // arbitrary numbers inside a question are NOT treated as marks/CO.
+  m = s.match(/(?:^|\s)(\d{1,2})\s+(\d{1,2})\s*$/);
+  if (m) {
+    mark = parseInt(m[1], 10);
+    co = parseInt(m[2], 10);
+    return { mark, co, level };
+  }
+
   // Pattern: trailing "<number> <marks>" e.g. "10 Marks"
   m = s.match(/(?:^|\s)(\d{1,2})\s*marks?\s*$/i);
   if (m) {
@@ -265,6 +278,8 @@ const cleanTrailingMeta = (text) => {
   let out = text.trim();
   // "2 K2" at end
   out = out.replace(/(?:^|\s)\d{1,2}\s+K\s*\d\s*$/i, "");
+  // "2 1" at end (two-number marks CO)
+  out = out.replace(/(?:^|\s)\d{1,2}\s+\d{1,2}\s*$/, "");
   // "10 Marks" at end
   out = out.replace(/(?:^|\s)\d{1,2}\s*marks?\s*$/i, "");
   // "[10]" or "[CO1/10]" anywhere
@@ -307,8 +322,9 @@ const matchQuestionStart = (line) => {
     return { label, rest: m[3] || "" };
   }
 
-  // Lettered sub-question: a. a) (a) b. etc.
-  m = trimmed.match(/^\(?([a-e])\)?\s*[\.\-:]\s*(.*)/i);
+  // Lettered sub-question: a. a) (a) b. ... z.
+  // Full alphabet — real exam papers commonly use a. through j. (or more).
+  m = trimmed.match(/^\(?([a-z])\)?\s*[\.\-:]\s*(.*)/i);
   if (m) {
     const label = m[1].toLowerCase();
     return { label, rest: m[2] || "" };
@@ -403,7 +419,7 @@ const parseQuestions = (rawText) => {
 
       // If it's a lettered item and we already have an active question whose text
       // is substantial, treat it as a sub-question belonging to the current question.
-      const isLettered = /^[a-e]$/i.test(start.label);
+      const isLettered = /^[a-z]$/i.test(start.label);
       if (isLettered && current && current.text.trim().length > 20 && !current.startedWithLetter) {
         // Sub-question
         const subText = cleanTrailingMeta(start.rest);
