@@ -300,6 +300,68 @@ assert(
 );
 
 // ═══════════════════════════════════════════════════════════
+// TEST 9: Parenthesized lettered questions (a)–(g)
+// ═══════════════════════════════════════════════════════════
+console.log("\n9. Parenthesized lettered questions (a)–(g)");
+
+const PAREN_INPUT = `Attempt all questions in brief. 2 x 07 = 14
+
+(a) Define candidate key and super key with example.
+(b) Differentiate TRUNCATE and DELETE command
+(c) Define triggers and its types.
+(d) Analyze and find the FDs in the following relation 1 2 1 3
+(e) List all prime and non-prime attributes In Relation R(A,B,C,D,E) with FD set F = {AB→C, B→E, C→D}.
+(f) Explain properties of Transaction.
+(g) Define multiple granuality.`;
+
+const parsedParen = parsePdfText(PAREN_INPUT);
+const parenQs = parsedParen.questions;
+console.log(`  Extracted ${parenQs.length} question(s):`);
+parenQs.forEach((q, i) => {
+  console.log(`    [${i + 1}] text="${q.questionText}"`);
+});
+
+const parenExpected = [
+  "Define candidate key and super key with example.",
+  "Differentiate TRUNCATE and DELETE command",
+  "Define triggers and its types.",
+  "Analyze and find the FDs in the following relation 1 2 1 3",
+  "List all prime and non-prime attributes In Relation R(A,B,C,D,E) with FD set F = {AB→C, B→E, C→D}.",
+  "Explain properties of Transaction.",
+  "Define multiple granuality.",
+];
+
+assert(parenQs.length === 7, `Exactly 7 questions extracted (got ${parenQs.length})`);
+
+parenExpected.forEach((expected, idx) => {
+  const q = parenQs[idx];
+  assert(q && q.questionText === expected, `Q${idx + 1} text matches: "${expected}"`);
+});
+
+// ZERO instruction / marks-instruction metadata in any questionText
+const hasParenMetadata = parenQs.some((q) =>
+  /Attempt all|2 x 07 = 14/.test(q.questionText)
+);
+assert(!hasParenMetadata, "ZERO instruction/header metadata in all questionText");
+
+// Question (d) must PRESERVE "1 2 1 3" — it is part of the question content,
+// not trailing marks/CO metadata.
+assert(
+  parenQs[3] && parenQs[3].questionText.includes("relation 1 2 1 3"),
+  "Q4 (d) preserves '1 2 1 3' as part of the question content"
+);
+
+// (a)–(g) are separate questions (no merge)
+assert(
+  parenQs[0] && parenQs[0].questionText.startsWith("Define candidate key"),
+  "Q1 (a) is a separate question"
+);
+assert(
+  parenQs[6] && parenQs[6].questionText.startsWith("Define multiple granuality"),
+  "Q7 (g) is a separate question — (a)–(g) not merged"
+);
+
+// ═══════════════════════════════════════════════════════════
 // SUMMARY
 // ═══════════════════════════════════════════════════════════
 console.log(`\n══════════════════════════════════════`);

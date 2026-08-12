@@ -237,12 +237,15 @@ const extractTrailingMeta = (str) => {
   }
 
   // Pattern: trailing "<number> <number>" e.g. "2 1" → marks=2, CO=1
-  // AKTU-style two-number trailing metadata. Anchored to END of line/block so
-  // arbitrary numbers inside a question are NOT treated as marks/CO.
-  m = s.match(/(?:^|\s)(\d{1,2})\s+(\d{1,2})\s*$/);
+  // AKTU-style two-number trailing metadata. Only recognized when the two
+  // numbers follow a sentence terminator (".", "?", "!") — i.e. they are
+  // clearly trailing metadata, NOT part of the question content.
+  // e.g. "What is the concept of keys in database? 2 1" → marks=2, co=1
+  // but "Analyze ... relation 1 2 1 3" → "1 3" is NOT stripped (no terminator).
+  m = s.match(/([.?!])\s*(\d{1,2})\s+(\d{1,2})\s*$/);
   if (m) {
-    mark = parseInt(m[1], 10);
-    co = parseInt(m[2], 10);
+    mark = parseInt(m[2], 10);
+    co = parseInt(m[3], 10);
     return { mark, co, level };
   }
 
@@ -278,8 +281,9 @@ const cleanTrailingMeta = (text) => {
   let out = text.trim();
   // "2 K2" at end
   out = out.replace(/(?:^|\s)\d{1,2}\s+K\s*\d\s*$/i, "");
-  // "2 1" at end (two-number marks CO)
-  out = out.replace(/(?:^|\s)\d{1,2}\s+\d{1,2}\s*$/, "");
+  // "2 1" at end (two-number marks CO) — only when preceded by a sentence
+  // terminator so question content like "relation 1 2 1 3" is preserved.
+  out = out.replace(/([.?!])\s*\d{1,2}\s+\d{1,2}\s*$/, "$1");
   // "10 Marks" at end
   out = out.replace(/(?:^|\s)\d{1,2}\s*marks?\s*$/i, "");
   // "[10]" or "[CO1/10]" anywhere
@@ -322,9 +326,18 @@ const matchQuestionStart = (line) => {
     return { label, rest: m[3] || "" };
   }
 
-  // Lettered sub-question: a. a) (a) b. ... z.
+  // Lettered sub-question: a. a) a: (a) (a) Question b. ... z.
   // Full alphabet — real exam papers commonly use a. through j. (or more).
   m = trimmed.match(/^\(?([a-z])\)?\s*[\.\-:]\s*(.*)/i);
+  if (m) {
+    const label = m[1].toLowerCase();
+    return { label, rest: m[2] || "" };
+  }
+
+  // Parenthesized lettered marker followed directly by whitespace:
+  // "(a) Define candidate key..." — the ")" is followed by a space, not a
+  // separator, so the regex above does not match. Handle it explicitly.
+  m = trimmed.match(/^\(([a-z])\)\s+(.*)/i);
   if (m) {
     const label = m[1].toLowerCase();
     return { label, rest: m[2] || "" };
