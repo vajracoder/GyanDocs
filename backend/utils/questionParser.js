@@ -69,7 +69,7 @@ const METADATA_PATTERNS = [
   /^instruction/i,
   /^answer\s+(any|all)\s/i,
   // Marks instructions
-  /\d+\s*x\s*=\s*\d+/i,           // "07 x 1 = 07", "07 x 3 = 07"
+  /\d+\s*[xX×\*]\s*(\d+\s*)?=\s*\d+/i,           // "07 x 1 = 07", "07 x 3 = 07", "2 × 10 = 20"
   // Section headings (SECTION A, SECTION B, ...)
   /^section\s+[a-z]/i,
   // Table headings (Q no. / Question / CO / Level columns)
@@ -346,6 +346,67 @@ const matchQuestionStart = (line) => {
   return null;
 };
 
+/**
+ * Remove leading instruction / header metadata that may precede question text
+ * e.g. "Attempt all questions in brief. 2 × 10 = 20 What is the concept of keys in database?"
+ */
+const cleanLeadingMetadata = (text) => {
+  let out = (text || "").trim();
+  out = out.replace(/^(?:attempt\s+(?:all|any)\s+questions?\s*(?:in\s+brief)?[\.\:]?\s*|\d+\s*[xX×\*]\s*(\d+\s*)?=\s*\d+[\.\:]?\s*)+/gi, "");
+  out = out.replace(/^section\s+[a-z][\.\:]?\s*/gi, "");
+  out = out.replace(/^note\s*:\s*attempt\s+(?:all|any)\s+questions[\.\:]?\s*/gi, "");
+  return out.trim();
+};
+
+/**
+ * Splits a single line into multiple line segments if it contains inline question markers
+ * (e.g. instruction/header text followed by (a), or multiple questions on a single extracted line).
+ */
+const splitLineByQuestionMarkers = (line) => {
+  const trimmed = (line || "").trim();
+  if (!trimmed) return [];
+
+  // Regex to find potential inline question markers
+  const markerRegex = /(?:^|\s+)(\(([a-z]{1,2}|[0-9]{1,2})\)|Q(?:uestion)?[\.\s]*[0-9]{1,2}[\:\.]?|[0-9]{1,2}[\.\)]|[a-z][\.\)])\s+/gi;
+
+  const splitIndices = [];
+  let match;
+
+  while ((match = markerRegex.exec(trimmed)) !== null) {
+    const matchIndex = match.index;
+    const fullMatchStr = match[0];
+    const leadingSpaces = fullMatchStr.match(/^\s*/)[0].length;
+    const markerStartIndex = matchIndex + leadingSpaces;
+
+    const substringFromMarker = trimmed.slice(markerStartIndex);
+    if (matchQuestionStart(substringFromMarker)) {
+      splitIndices.push(markerStartIndex);
+    }
+  }
+
+  if (splitIndices.length === 0 || (splitIndices.length === 1 && splitIndices[0] === 0)) {
+    return [trimmed];
+  }
+
+  const segments = [];
+  let lastIdx = 0;
+
+  for (const idx of splitIndices) {
+    if (idx > lastIdx) {
+      const seg = trimmed.slice(lastIdx, idx).trim();
+      if (seg) segments.push(seg);
+    }
+    lastIdx = idx;
+  }
+
+  if (lastIdx < trimmed.length) {
+    const seg = trimmed.slice(lastIdx).trim();
+    if (seg) segments.push(seg);
+  }
+
+  return segments;
+};
+
 // ────────────────────────────────────────────────────────────
 // MAIN PARSER
 // ────────────────────────────────────────────────────────────
@@ -362,9 +423,17 @@ const parseQuestions = (rawText) => {
   // 2. Normalize whitespace per line
   const normalizedLines = rawLines.map((l) => l.replace(/\s+/g, " ").trim());
 
-  // 3. Detect & remove duplicated consecutive lines (PDF extraction artifact)
-  const dedupedLines = [];
+  // 3. Expand lines containing inline question markers
+  const expandedLines = [];
   for (const line of normalizedLines) {
+    if (!line) continue;
+    const segments = splitLineByQuestionMarkers(line);
+    expandedLines.push(...segments);
+  }
+
+  // 4. Detect & remove duplicated consecutive lines (PDF extraction artifact)
+  const dedupedLines = [];
+  for (const line of expandedLines) {
     const prev = dedupedLines[dedupedLines.length - 1] || "";
     if (line && line.toLowerCase() === prev.toLowerCase()) {
       continue; // skip duplicate
@@ -372,7 +441,7 @@ const parseQuestions = (rawText) => {
     dedupedLines.push(line);
   }
 
-  // 4. Classify lines into "content" vs "metadata" by examining the whole set first.
+  // 5. Classify lines into "content" vs "metadata" by examining the whole set first.
   const lines = dedupedLines.filter((l) => l.length > 0).filter((l) => !isMetadataLine(l));
 
   // Strip embedded metadata from each remaining line (e.g. page footers).
@@ -389,7 +458,8 @@ const parseQuestions = (rawText) => {
    */
   const flush = () => {
     if (!current) return;
-    const cleanText = cleanTrailingMeta(current.text);
+    let cleanText = cleanLeadingMetadata(current.text);
+    cleanText = cleanTrailingMeta(cleanText);
     if (cleanText.length > 5) {
       questions.push({
         questionNumber: current.label,
@@ -548,6 +618,8 @@ module.exports = {
     stripEmbeddedMetadata,
     extractTrailingMeta,
     cleanTrailingMeta,
+    cleanLeadingMetadata,
     matchQuestionStart,
+    splitLineByQuestionMarkers,
   },
 };

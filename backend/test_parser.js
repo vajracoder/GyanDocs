@@ -362,6 +362,34 @@ assert(
 );
 
 // ═══════════════════════════════════════════════════════════
+// TEST 10: Production format — header/instruction on same line as (a) marker
+// ═══════════════════════════════════════════════════════════
+console.log("\n10. REGRESSION: Instruction/header immediately before (a) marker on same line");
+
+const PROD_SAME_LINE_INPUT = `Attempt all questions in brief. 2 × 10 = 20 (a) What is the concept of keys in database? (b) What is strong & weak entity set?`;
+
+const parsedProdSameLine = parsePdfText(PROD_SAME_LINE_INPUT);
+const prodSameLineQs = parsedProdSameLine.questions;
+console.log(`  Extracted ${prodSameLineQs.length} question(s):`);
+prodSameLineQs.forEach((q, i) => {
+  console.log(`    [${i + 1}] text="${q.questionText}"`);
+});
+
+assert(prodSameLineQs.length === 2, `Exactly 2 questions extracted (got ${prodSameLineQs.length})`);
+assert(
+  prodSameLineQs[0] && prodSameLineQs[0].questionText === "What is the concept of keys in database?",
+  `Q1 text matches expected: "What is the concept of keys in database?" (got "${prodSameLineQs[0] ? prodSameLineQs[0].questionText : ""}")`
+);
+assert(
+  prodSameLineQs[1] && prodSameLineQs[1].questionText === "What is strong & weak entity set?",
+  `Q2 text matches expected: "What is strong & weak entity set?" (got "${prodSameLineQs[1] ? prodSameLineQs[1].questionText : ""}")`
+);
+assert(
+  !prodSameLineQs.some((q) => /Attempt all|2 × 10 = 20/.test(q.questionText)),
+  "ZERO instruction/header text in any questionText"
+);
+
+// ═══════════════════════════════════════════════════════════
 // SUMMARY
 // ═══════════════════════════════════════════════════════════
 console.log(`\n══════════════════════════════════════`);
