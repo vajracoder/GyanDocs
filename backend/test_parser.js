@@ -390,6 +390,147 @@ assert(
 );
 
 // ═══════════════════════════════════════════════════════════
+// TEST 11: 10 individual 2-mark questions (a)-(j)
+// ═══════════════════════════════════════════════════════════
+console.log("\n11. 10 individual 2-mark questions (a)-(j)");
+
+const TEN_2MARK = `Attempt all questions in brief. 2 x 10 = 20
+
+a. What is the concept of keys in database? 2 1
+b. What is strong & weak entity set? 2 1
+c. Explain referential integrity. 2 2
+d. Explain entity integrity constraints. 2 2
+e. Write different inference rule for functional dependency? 2 3
+f. Why do we normalize database? 2 3
+g. What do you mean by testing of serializability? 2 4
+h. Define replication in distributed database. 2 4
+i. Define concurrency control. 2 5
+j. Define exclusive lock. 2 5`;
+
+const parsedTen = parsePdfText(TEN_2MARK);
+assert(parsedTen.questions.length === 10, `Exactly 10 questions extracted (got ${parsedTen.questions.length})`);
+parsedTen.questions.forEach((q, idx) => {
+  assert(q.marks === 2, `Q${idx+1} marks=2 (got ${q.marks})`);
+});
+assert(!parsedTen.questions.some(q => /Attempt all/.test(q.questionText)), "No instruction text in any question");
+
+// ═══════════════════════════════════════════════════════════
+// TEST 12: Two 7-mark questions (a)-(b)
+// ═══════════════════════════════════════════════════════════
+console.log("\n12. Two 7-mark questions (a)-(b)");
+
+const TWO_7MARK = `Attempt any one part of the following: 07 x 1 = 07
+
+(a) Explain ER Diagram with suitable example. 7 1
+(b) Explain different types of joins with example. 7 2`;
+
+const parsedTwo7 = parsePdfText(TWO_7MARK);
+assert(parsedTwo7.questions.length === 2, `Exactly 2 questions extracted (got ${parsedTwo7.questions.length})`);
+parsedTwo7.questions.forEach((q, idx) => {
+  assert(q.marks === 7, `Q${idx+1} marks=7 (got ${q.marks})`);
+});
+assert(!parsedTwo7.questions.some(q => /Attempt any/.test(q.questionText)), "No instruction text in any question");
+
+// ═══════════════════════════════════════════════════════════
+// TEST 13: Section A (10x2-mark) + Section B (7/10-mark)
+// ═══════════════════════════════════════════════════════════
+console.log("\n13. Section A (10x2-mark) + Section B (7/10-mark)");
+
+const SECTIONS_INPUT = `SECTION A
+Attempt all questions in brief. 2 x 10 = 20
+
+a. What is the concept of keys in database? 2 1
+b. What is strong & weak entity set? 2 1
+c. Explain referential integrity. 2 2
+d. Explain entity integrity constraints. 2 2
+e. Write different inference rule for functional dependency? 2 3
+f. Why do we normalize database? 2 3
+g. What do you mean by testing of serializability? 2 4
+h. Define replication in distributed database. 2 4
+i. Define concurrency control. 2 5
+j. Define exclusive lock. 2 5
+
+SECTION B
+Attempt any one part of the following: 07 x 1 = 07
+
+(a) Explain ER Diagram with suitable example. 7 1
+(b) Explain different types of joins with example. 7 2`;
+
+const parsedSections = parsePdfText(SECTIONS_INPUT);
+assert(parsedSections.questions.length === 12, `Exactly 12 questions extracted (got ${parsedSections.questions.length})`);
+
+// First 10 should be 2-mark, last 2 should be 7-mark
+parsedSections.questions.slice(0, 10).forEach((q, idx) => {
+  assert(q.marks === 2, `Q${idx+1} marks=2 (got ${q.marks})`);
+});
+parsedSections.questions.slice(10).forEach((q, idx) => {
+  assert(q.marks === 7, `Q${idx+11} marks=7 (got ${q.marks})`);
+});
+
+// No SECTION A/B in any questionText
+assert(!parsedSections.questions.some(q => /SECTION [A-D]/.test(q.questionText)), "No SECTION A/B/C/D in any questionText");
+// No instruction text
+assert(!parsedSections.questions.some(q => /Attempt all|Attempt any/.test(q.questionText)), "No instruction text in any question");
+
+// ═══════════════════════════════════════════════════════════
+// TEST 14: Inline format with multiple questions on one line
+// ═══════════════════════════════════════════════════════════
+console.log("\n14. Inline format: multiple questions on one line");
+
+const INLINE_INPUT = `Attempt all questions. 2 × 10 = 20 (a) What is the concept of keys in database? (b) What is strong & weak entity set? (c) Explain referential integrity.`;
+
+const parsedInline = parsePdfText(INLINE_INPUT);
+assert(parsedInline.questions.length === 3, `Exactly 3 questions extracted (got ${parsedInline.questions.length})`);
+assert(
+  parsedInline.questions[0] && parsedInline.questions[0].questionText === "What is the concept of keys in database?",
+  `Q1 text matches: "What is the concept of keys in database?" (got "${parsedInline.questions[0] ? parsedInline.questions[0].questionText : ""}")`
+);
+assert(
+  parsedInline.questions[1] && parsedInline.questions[1].questionText === "What is strong & weak entity set?",
+  `Q2 text matches: "What is strong & weak entity set?" (got "${parsedInline.questions[1] ? parsedInline.questions[1].questionText : ""}")`
+);
+assert(
+  parsedInline.questions[2] && parsedInline.questions[2].questionText === "Explain referential integrity.",
+  `Q3 text matches: "Explain referential integrity." (got "${parsedInline.questions[2] ? parsedInline.questions[2].questionText : ""}")`
+);
+assert(!parsedInline.questions.some(q => /Attempt all/.test(q.questionText)), "No instruction text in any question");
+
+// ═══════════════════════════════════════════════════════════
+// TEST 15: Verify marks independently assigned per question
+// ═══════════════════════════════════════════════════════════
+console.log("\n15. Marks independently assigned per question");
+
+const MIXED_MARKS = `a. Explain DBMS architecture. 2 1
+b. Explain normalization with examples. 7 3
+c. Discuss concurrency control. 10 4`;
+
+const parsedMixed = parsePdfText(MIXED_MARKS);
+assert(parsedMixed.questions.length === 3, `Exactly 3 questions extracted (got ${parsedMixed.questions.length})`);
+assert(parsedMixed.questions[0].marks === 2, `Q1 marks=2 (got ${parsedMixed.questions[0].marks})`);
+assert(parsedMixed.questions[1].marks === 7, `Q2 marks=7 (got ${parsedMixed.questions[1].marks})`);
+assert(parsedMixed.questions[2].marks === 10, `Q3 marks=10 (got ${parsedMixed.questions[2].marks})`);
+
+// ═══════════════════════════════════════════════════════════
+// TEST 16: Verify classification runs independently per question
+// ═══════════════════════════════════════════════════════════
+console.log("\n16. Classification runs independently per question");
+
+// Two questions from different units in the same section
+const CROSS_UNIT = `a. Explain ER Diagram with suitable example. 7 1
+b. Explain natural join in relational algebra. 7 2`;
+
+const parsedCross = parsePdfText(CROSS_UNIT);
+assert(parsedCross.questions.length === 2, `Exactly 2 questions extracted (got ${parsedCross.questions.length})`);
+assert(
+  parsedCross.questions[0].questionText.includes("ER Diagram"),
+  `Q1 is ER Diagram question (got "${parsedCross.questions[0].questionText}")`
+);
+assert(
+  parsedCross.questions[1].questionText.includes("natural join"),
+  `Q2 is natural join question (got "${parsedCross.questions[1].questionText}")`
+);
+
+// ═══════════════════════════════════════════════════════════
 // SUMMARY
 // ═══════════════════════════════════════════════════════════
 console.log(`\n══════════════════════════════════════`);
