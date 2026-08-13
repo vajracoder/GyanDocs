@@ -71,7 +71,9 @@ const upload = multer({
 }).single("pdf");
 
 // ────────────────────────────────────────────────────────────
-// POST /api/pdf/parse
+// POST /api/pdf/parse?subjectId=<id>
+// The optional subjectId query param enables automatic
+// unit/sub-unit classification of each extracted question.
 // ────────────────────────────────────────────────────────────
 router.post(
   "/parse",

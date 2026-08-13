@@ -1,6 +1,7 @@
 const Question = require("../models/Question");
 const Unit = require("../models/Unit");
 const { calculatePriority } = require("../utils/priorityHelper");
+const { classifyQuestion } = require("../services/classifier");
 const fs = require("fs");
 const { PDFParse } = require("pdf-parse");
 const { parsePdfText } = require("../utils/questionParser");
@@ -42,6 +43,10 @@ exports.parsePdf = async (req, res) => {
 
   const filePath = req.file.path;
   const originalname = req.file.originalname;
+  // Optional subjectId passed as a query param (multipart uploads can't
+  // reliably carry JSON body fields). When present, each extracted question
+  // is automatically classified into a suggested unit + sub-unit.
+  const subjectId = req.query.subjectId || null;
 
   try {
     const dataBuffer = fs.readFileSync(filePath);
@@ -64,12 +69,43 @@ exports.parsePdf = async (req, res) => {
     const pages = result.total || 1;
     const { detectedYear, questions } = parsePdfText(text);
 
+    // ── Automatic classification (syllabus-driven) ──────────────
+    // If a subjectId was provided, classify each question into a
+    // suggested unit + sub-unit. The admin reviews these suggestions
+    // in the UI before saving. Low-confidence results are left null
+    // so the admin must assign manually.
+    let classifiedQuestions = questions;
+    if (subjectId) {
+      classifiedQuestions = await Promise.all(
+        questions.map(async (q) => {
+          const classification = await classifyQuestion({
+            questionText: q.questionText,
+            subjectId,
+          });
+          return {
+            ...q,
+            suggestedUnitId: classification.unitId,
+            suggestedUnitName: classification.unitName,
+            suggestedUnitNumber: classification.unitNumber,
+            suggestedTopicId: classification.topicId,
+            suggestedTopicName: classification.topicName,
+            unitConfidence: classification.unitConfidence,
+            topicConfidence: classification.topicConfidence,
+            classificationConfidence: classification.classificationConfidence,
+            classificationLabel: classification.confidenceLabel,
+            needsManualReview: classification.needsManualReview,
+            alternatives: classification.alternatives || [],
+          };
+        })
+      );
+    }
+
     return res.status(200).json({
       success: true,
       filename: originalname,
       pages,
       detectedYear,
-      questions,
+      questions: classifiedQuestions,
     });
   } catch (error) {
     console.error("PDF Parsing Error:", error.message);
@@ -255,6 +291,20 @@ exports.importPdf = async (req, res) => {
 
           if (incomingQ.marks != null && incomingQ.marks !== "") {
             newQuestionData.marks = Number(incomingQ.marks);
+          }
+
+          // ── Classification metadata (co, level, topic, confidence) ──
+          if (incomingQ.co != null && incomingQ.co !== "") {
+            newQuestionData.co = Number(incomingQ.co);
+          }
+          if (incomingQ.level != null && incomingQ.level !== "") {
+            newQuestionData.level = String(incomingQ.level).toUpperCase();
+          }
+          if (incomingQ.topicId) {
+            newQuestionData.topicId = incomingQ.topicId;
+          }
+          if (incomingQ.classificationConfidence != null && incomingQ.classificationConfidence !== "") {
+            newQuestionData.classificationConfidence = Number(incomingQ.classificationConfidence);
           }
 
           const created = await Question.create(newQuestionData);

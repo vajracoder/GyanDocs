@@ -65,6 +65,13 @@ export const updateUnit = (id, data) =>
   api.put(`/units/${id}`, data).then((res) => res.data);
 
 // ==========================
+// TOPICS (SUB-UNITS)
+// ==========================
+
+export const getTopicsByUnit = (unitId) =>
+  api.get(`/topics?unitId=${unitId}`).then((res) => res.data);
+
+// ==========================
 // QUESTIONS
 // ==========================
 
@@ -106,11 +113,12 @@ export const getRevisionQuestions = (unitId) =>
 // PDF PARSER
 // ==========================
 
-export const parsePdf = (file) => {
+export const parsePdf = (file, subjectId) => {
   const formData = new FormData();
   formData.append("pdf", file);
   return api
     .post("/pdf/parse", formData, {
+      params: subjectId ? { subjectId } : undefined,
       headers: {
         "Content-Type": "multipart/form-data",
       },

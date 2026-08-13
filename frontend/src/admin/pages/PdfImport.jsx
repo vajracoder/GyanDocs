@@ -1,5 +1,5 @@
 import { useEffect, useState, useRef } from "react";
-import { getSubjects, getUnits, parsePdf, importPdf } from "../../services/api";
+import { getSubjects, getUnits, getTopicsByUnit, parsePdf, importPdf } from "../../services/api";
 import "./PdfImport.css";
 
 export default function PdfImport() {
@@ -121,7 +121,9 @@ export default function PdfImport() {
       setError(null);
       setStatusMsg("Uploading & extracting text from PDF…");
 
-      const response = await parsePdf(selectedFile);
+      // Pass subjectId so the backend can auto-classify each question
+      // into a suggested unit + sub-unit.
+      const response = await parsePdf(selectedFile, selectedSubject);
       if (!response?.success) {
         setError(response?.message || "Failed to extract questions.");
         setStatusMsg(null);
@@ -134,11 +136,25 @@ export default function PdfImport() {
         questionNumber: q.questionNumber || String(i + 1),
         questionText: q.questionText || "",
         marks: q.marks != null ? q.marks : "",
+        co: q.co != null ? q.co : "",
+        level: q.level || "",
         confidence: q.confidence || 0.85,
+        // Classification suggestions from the backend
+        suggestedUnitId: q.suggestedUnitId || "",
+        suggestedUnitName: q.suggestedUnitName || "",
+        suggestedUnitNumber: q.suggestedUnitNumber || "",
+        suggestedTopicId: q.suggestedTopicId || "",
+        suggestedTopicName: q.suggestedTopicName || "",
+        unitConfidence: q.unitConfidence != null ? q.unitConfidence : null,
+        topicConfidence: q.topicConfidence != null ? q.topicConfidence : null,
+        classificationConfidence: q.classificationConfidence != null ? q.classificationConfidence : null,
+        classificationLabel: q.classificationLabel || "LOW",
+        needsManualReview: q.needsManualReview !== false,
+        alternatives: q.alternatives || [],
         kept: true,
       }));
       setExtractedQuestions(qList);
-      setStatusMsg(`Extracted ${qList.length} question(s). Review & edit below, then click "Confirm & Save".`);
+      setStatusMsg(`Extracted ${qList.length} question(s). Review classification & edit below, then click "Confirm & Save".`);
     } catch (err) {
       setError(err.response?.data?.message || err.message || "Error parsing PDF.");
       setStatusMsg(null);
@@ -152,7 +168,37 @@ export default function PdfImport() {
   ───────────────────────────────────────────────────── */
   const handleQTextChange  = (i, v) => { const u=[...extractedQuestions]; u[i].questionText=v; setExtractedQuestions(u); };
   const handleMarksChange  = (i, v) => { const u=[...extractedQuestions]; u[i].marks=v!==""?Number(v):""; setExtractedQuestions(u); };
+  const handleCoChange     = (i, v) => { const u=[...extractedQuestions]; u[i].co=v!==""?Number(v):""; setExtractedQuestions(u); };
+  const handleLevelChange  = (i, v) => { const u=[...extractedQuestions]; u[i].level=v; setExtractedQuestions(u); };
   const handleRemoveQ      = (i)    => setExtractedQuestions(extractedQuestions.filter((_, idx) => idx !== i));
+
+  // Admin overrides the suggested unit for a question
+  const handleUnitOverride = (i, unitId) => {
+    const u = [...extractedQuestions];
+    u[i].suggestedUnitId = unitId;
+    // When the unit changes, clear the sub-unit (it belongs to the old unit)
+    u[i].suggestedTopicId = "";
+    u[i].suggestedTopicName = "";
+    setExtractedQuestions(u);
+  };
+
+  // Admin overrides the suggested sub-unit (topic) for a question
+  const handleTopicOverride = (i, topicId) => {
+    const u = [...extractedQuestions];
+    u[i].suggestedTopicId = topicId;
+    setExtractedQuestions(u);
+  };
+
+  // Accept all high-confidence classifications (HIGH label)
+  const handleAcceptAllHigh = () => {
+    const u = extractedQuestions.map(q => {
+      if (q.classificationLabel === "HIGH" && q.suggestedUnitId) {
+        return { ...q, needsManualReview: false };
+      }
+      return q;
+    });
+    setExtractedQuestions(u);
+  };
 
   /* ─────────────────────────────────────────────────────
      STEP 2 — Confirm & Save → call importPdf API
@@ -183,6 +229,10 @@ export default function PdfImport() {
         questions: keptQuestions.map(q => ({
           questionText: q.questionText.trim(),
           marks: q.marks !== "" ? q.marks : null,
+          co: q.co !== "" ? q.co : null,
+          level: q.level || null,
+          topicId: q.suggestedTopicId || null,
+          classificationConfidence: q.classificationConfidence != null ? q.classificationConfidence : null,
           questionType: "theory",
           answer: "",
           source: filename,
@@ -278,6 +328,32 @@ export default function PdfImport() {
 
   const isFormValid = selectedSubject && selectedUnit && selectedFile;
   const hasExtractedQuestions = extractedQuestions.length > 0;
+
+  // Confidence display helper
+  const confidencePct = (q) => {
+    if (q.classificationConfidence == null) return null;
+    return Math.round(q.classificationConfidence * 100);
+  };
+
+  const confidenceBadgeClass = (q) => {
+    const pct = confidencePct(q);
+    if (pct == null) return "low";
+    if (pct >= 85) return "high";
+    if (pct >= 65) return "medium";
+    return "low";
+  };
+
+  const confidenceStatusText = (q) => {
+    if (q.classificationLabel === "HIGH") return "Auto classified";
+    if (q.classificationLabel === "MEDIUM") return "Please review";
+    return "Manual classification required";
+  };
+
+  const confidenceEmoji = (q) => {
+    if (q.classificationLabel === "HIGH") return "🟢";
+    if (q.classificationLabel === "MEDIUM") return "🟡";
+    return "🔴";
+  };
 
   /* ─────────────────────────────────────────────────────
      Render
@@ -437,6 +513,10 @@ export default function PdfImport() {
                 <input type="number" value={detectedYear || ""} placeholder="e.g. 2025"
                   onChange={e => setDetectedYear(e.target.value ? Number(e.target.value) : null)} />
               </div>
+              <button className="accept-high-btn" disabled={importing}
+                onClick={handleAcceptAllHigh}>
+                ✓ Accept all high-confidence
+              </button>
               <button className="confirm-save-btn" disabled={importing}
                 onClick={handleConfirmSave}>
                 {importing ? "Saving…" : "✅ Confirm & Save"}
@@ -457,14 +537,19 @@ export default function PdfImport() {
                 <tr>
                   <th style={{ width: 50, textAlign: "center" }}>#</th>
                   <th>Question Text</th>
-                  <th style={{ width: 90 }}>Marks</th>
+                  <th style={{ width: 70 }}>Marks</th>
+                  <th style={{ width: 60 }}>CO</th>
+                  <th style={{ width: 60 }}>Level</th>
+                  <th style={{ width: 160 }}>Suggested Unit</th>
+                  <th style={{ width: 160 }}>Suggested Sub-unit</th>
                   <th style={{ width: 100 }}>Confidence</th>
                   <th style={{ width: 90, textAlign: "center" }}>Actions</th>
                 </tr>
               </thead>
               <tbody>
                 {extractedQuestions.map((q, i) => {
-                  const pct = Math.round((q.confidence || 0.85) * 100);
+                  const pct = confidencePct(q);
+                  const confClass = confidenceBadgeClass(q);
                   return (
                     <tr key={i}>
                       <td className="q-num-col">{q.questionNumber}</td>
@@ -477,7 +562,41 @@ export default function PdfImport() {
                           placeholder="—" onChange={e => handleMarksChange(i, e.target.value)} />
                       </td>
                       <td>
-                        <span className={`confidence-badge ${pct >= 90 ? "" : "medium"}`}>{pct}%</span>
+                        <input type="number" className="q-marks-input" value={q.co}
+                          placeholder="—" onChange={e => handleCoChange(i, e.target.value)} />
+                      </td>
+                      <td>
+                        <input type="text" className="q-marks-input" value={q.level}
+                          placeholder="—" onChange={e => handleLevelChange(i, e.target.value)} />
+                      </td>
+                      <td>
+                        <select className="q-class-select" value={q.suggestedUnitId}
+                          onChange={e => handleUnitOverride(i, e.target.value)}>
+                          <option value="">{q.needsManualReview && !q.suggestedUnitId ? "Needs manual classification" : "Select Unit"}</option>
+                          {units.map(u => (
+                            <option key={u._id} value={u._id}>Unit {u.unitNumber} — {u.name}</option>
+                          ))}
+                        </select>
+                      </td>
+                      <td>
+                        <select className="q-class-select" value={q.suggestedTopicId}
+                          onChange={e => handleTopicOverride(i, e.target.value)}
+                          disabled={!q.suggestedUnitId}>
+                          <option value="">{q.suggestedUnitId ? "Select Sub-unit" : "Select Unit first"}</option>
+                          {q.suggestedUnitId && units.find(u => u._id === q.suggestedUnitId)?.topics?.map(t => (
+                            <option key={t._id} value={t._id}>{t.name}</option>
+                          ))}
+                        </select>
+                      </td>
+                      <td>
+                        {pct != null ? (
+                          <span className={`confidence-badge ${confClass}`}>
+                            {confidenceEmoji(q)} {pct}% — {q.classificationLabel}
+                            <div className="conf-status">{confidenceStatusText(q)}</div>
+                          </span>
+                        ) : (
+                          <span className="confidence-badge low">🔴 Manual classification required</span>
+                        )}
                       </td>
                       <td style={{ textAlign: "center" }}>
                         <button type="button" className="remove-q-btn" onClick={() => handleRemoveQ(i)}>

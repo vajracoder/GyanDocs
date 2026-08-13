@@ -45,7 +45,7 @@ const updateUnitQuestionCount = async (unitId) => {
 // ==============================
 exports.getQuestions = async (req, res) => {
   try {
-    const { subjectId, unitId, year, priority, questionType, search, isActive } = req.query;
+    const { subjectId, unitId, topicId, year, priority, questionType, search, isActive } = req.query;
 
     // Explicitly validate every filter parameter. Never pass req.query into
     // Mongoose directly — this prevents query-object injection (?year[$ne]=...).
@@ -74,6 +74,14 @@ exports.getQuestions = async (req, res) => {
         return res.status(400).json({ success: false, message: result.error });
       }
       filter.unitId = result.value;
+    }
+
+    if (topicId !== undefined) {
+      const result = validateObjectId(topicId, "topic ID");
+      if (!result.valid) {
+        return res.status(400).json({ success: false, message: result.error });
+      }
+      filter.topicId = result.value;
     }
 
     if (year !== undefined) {
@@ -115,6 +123,7 @@ exports.getQuestions = async (req, res) => {
     const questions = await Question.find(filter)
       .populate("subjectId", "name code shortName slug semester")
       .populate("unitId", "name unitNumber slug")
+      .populate("topicId", "name slug")
       .sort({ priority: -1, createdAt: -1 });
 
     res.status(200).json({
@@ -138,7 +147,8 @@ exports.getQuestionById = async (req, res) => {
   try {
     const question = await Question.findById(req.params.id)
       .populate("subjectId", "name code shortName slug semester")
-      .populate("unitId", "name unitNumber slug");
+      .populate("unitId", "name unitNumber slug")
+      .populate("topicId", "name slug");
 
     if (!question) {
       return res.status(404).json({
@@ -213,7 +223,8 @@ exports.createQuestion = async (req, res) => {
 
     const populatedQuestion = await Question.findById(question._id)
       .populate("subjectId", "name code shortName slug semester")
-      .populate("unitId", "name unitNumber slug");
+      .populate("unitId", "name unitNumber slug")
+      .populate("topicId", "name slug");
 
     res.status(201).json({
       success: true,
@@ -239,8 +250,12 @@ const QUESTION_UPDATE_ALLOWLIST = [
   "questionText",
   "subjectId",
   "unitId",
+  "topicId",
   "years",
   "marks",
+  "co",
+  "level",
+  "classificationConfidence",
   "questionType",
   "answer",
   "source",
@@ -304,7 +319,8 @@ exports.updateQuestion = async (req, res) => {
       { new: true, runValidators: true }
     )
       .populate("subjectId", "name code shortName slug semester")
-      .populate("unitId", "name unitNumber slug");
+      .populate("unitId", "name unitNumber slug")
+      .populate("topicId", "name slug");
 
     // Update questionsCount for unit(s)
     const newUnitId = updatedQuestion.unitId._id

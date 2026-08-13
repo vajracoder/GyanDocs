@@ -1,4 +1,5 @@
 const Unit = require("../models/Unit");
+const Topic = require("../models/Topic");
 const { normalizeError } = require("../middleware/errorHandler");
 
 // ==============================
@@ -22,10 +23,20 @@ exports.getUnitsBySubject = async (req, res) => {
       unitNumber: 1,
     });
 
+    // Attach topics (sub-units) to each unit so the admin UI can
+    // offer sub-unit selection during PDF import review.
+    const unitIds = units.map((u) => u._id);
+    const topics = await Topic.find({ unitId: { $in: unitIds }, isActive: true }).sort({ name: 1 });
+
+    const unitsWithTopics = units.map((u) => ({
+      ...u.toObject(),
+      topics: topics.filter((t) => t.unitId.toString() === u._id.toString()),
+    }));
+
     res.status(200).json({
       success: true,
-      count: units.length,
-      data: units,
+      count: unitsWithTopics.length,
+      data: unitsWithTopics,
     });
   } catch (error) {
     const { status, message } = normalizeError(error);

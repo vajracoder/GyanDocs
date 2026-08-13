@@ -2,40 +2,64 @@ const Question = require('../models/Question');
 const { normalizeError } = require('../middleware/errorHandler');
 const { escapeRegex, MAX_SEARCH_LENGTH } = require('../utils/queryValidation');
 
+/**
+ * Search questions with optional filters:
+ *   ?q=text            — free-text search on questionText
+ *   ?subjectId=...     — filter by subject
+ *   ?unitId=...        — filter by unit
+ *   ?topicId=...       — filter by sub-unit (topic)
+ *   ?year=2025         — filter by year
+ *
+ * Returns questions populated with subject, unit, and topic (sub-unit).
+ */
 exports.searchQuestions = async (req, res) => {
   try {
-    const q = (req.query.q || '').trim();
-    if (!q) return res.json([]);
-    if (q.length > MAX_SEARCH_LENGTH) {
-      return res.status(400).json({ message: 'Search query is too long.' });
+    const { q, subjectId, unitId, topicId, year } = req.query;
+
+    const filter = { isActive: true };
+
+    // ── Free-text search on questionText ─────────────────────
+    if (q) {
+      const query = String(q).trim();
+      if (query.length > MAX_SEARCH_LENGTH) {
+        return res.status(400).json({ message: 'Search query is too long.' });
+      }
+      if (query) {
+        // Treat user input as literal text — never as an executable regex pattern.
+        filter.questionText = { $regex: escapeRegex(query), $options: "i" };
+      }
     }
 
-    const unitMatch = q.match(/unit\s*0*(\d+)/i);
-    // Treat user input as literal text — never as an executable regex pattern.
-    const regex = new RegExp(escapeRegex(q), 'i');
+    // ── Subject filter ───────────────────────────────────────
+    if (subjectId) {
+      filter.subjectId = subjectId;
+    }
 
-    const orConditions = [
-      { topicName: regex },
-      { subjectName: regex },
-      { unitName: regex },
-      { question: regex },
-    ];
-    if (unitMatch) orConditions.push({ unitNumber: Number(unitMatch[1]) });
+    // ── Unit filter ──────────────────────────────────────────
+    if (unitId) {
+      filter.unitId = unitId;
+    }
 
-    const results = await Question.find({ $or: orConditions });
+    // ── Sub-unit (topic) filter ──────────────────────────────
+    if (topicId) {
+      filter.topicId = topicId;
+    }
 
-    const scored = results.map((item) => {
-      let score = 0;
-      if (unitMatch && item.unitNumber === Number(unitMatch[1])) score += 5;
-      if (regex.test(item.topicName)) score += 4;
-      if (regex.test(item.subjectName)) score += 2;
-      if (regex.test(item.unitName)) score += 2;
-      if (regex.test(item.question)) score += 1;
-      return { item, score };
-    });
+    // ── Year filter ──────────────────────────────────────────
+    if (year) {
+      const y = Number(year);
+      if (!isNaN(y) && y > 1900 && y < 2100) {
+        filter.years = y;
+      }
+    }
 
-    scored.sort((a, b) => b.score - a.score || b.item.frequency - a.item.frequency);
-    res.json(scored.map((s) => s.item));
+    const results = await Question.find(filter)
+      .populate('subjectId', 'name code shortName slug semester')
+      .populate('unitId', 'name unitNumber slug')
+      .populate('topicId', 'name slug')
+      .sort({ priority: -1, createdAt: -1 });
+
+    res.json(results);
   } catch (error) {
     const { status, message } = normalizeError(error);
     res.status(status).json({ message });

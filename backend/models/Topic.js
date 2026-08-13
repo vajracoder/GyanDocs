@@ -28,6 +28,30 @@ const topicSchema = new mongoose.Schema(
       trim: true,
     },
 
+    // ── Rich syllabus profile (optional, non-breaking) ──────────
+    // These fields enrich the classifier's concept profile. They are
+    // optional so existing Topic documents continue to work unchanged.
+    // When absent, the classifier derives tokens from name + description.
+
+    // Core terms that uniquely identify this topic (e.g. "normalization", "3NF")
+    keywords: {
+      type: [String],
+      default: [],
+    },
+
+    // Alternative names / aliases for this topic (e.g. "normal forms")
+    aliases: {
+      type: [String],
+      default: [],
+    },
+
+    // Related concepts that questions about this topic often mention
+    // (e.g. "functional dependency", "decomposition")
+    concepts: {
+      type: [String],
+      default: [],
+    },
+
     questionsCount: {
       type: Number,
       default: 0,
