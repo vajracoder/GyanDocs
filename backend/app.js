@@ -71,6 +71,7 @@ app.use('/api/topics', require('./routes/topicRoutes'));
 app.use('/api/questions', require('./routes/questionRoutes'));
 app.use('/api/search', require('./routes/searchRoutes'));
 app.use('/api/pdf', require('./routes/pdfRoutes'));
+app.use('/api/feedback', require('./routes/classificationFeedbackRoutes'));
 
 // 404 handler for unknown API routes.
 app.use("/api", (req, res) => {

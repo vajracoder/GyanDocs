@@ -129,4 +129,17 @@ export const parsePdf = (file, subjectId) => {
 export const importPdf = (payload) =>
   api.post("/pdf/import", payload).then((res) => res.data);
 
+// ==========================
+// CLASSIFICATION FEEDBACK
+// ==========================
+
+export const createClassificationFeedback = (data) =>
+  api.post("/feedback", data).then((res) => res.data);
+
+export const getClassificationFeedback = (params) =>
+  api.get("/feedback", { params }).then((res) => res.data);
+
+export const deleteClassificationFeedback = (id) =>
+  api.delete(`/feedback/${id}`).then((res) => res.data);
+
 export default api;

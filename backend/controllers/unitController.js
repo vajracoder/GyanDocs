@@ -86,6 +86,9 @@ const UNIT_CREATE_ALLOWLIST = [
   "name",
   "slug",
   "description",
+  "keywords",
+  "aliases",
+  "concepts",
 ];
 
 // ==============================
@@ -93,7 +96,15 @@ const UNIT_CREATE_ALLOWLIST = [
 // ==============================
 // The admin UI deliberately does NOT expose subjectId on edit, so it is
 // excluded here. Only unitNumber, name, slug, and description are editable.
-const UNIT_UPDATE_ALLOWLIST = ["unitNumber", "name", "slug", "description"];
+const UNIT_UPDATE_ALLOWLIST = [
+  "unitNumber",
+  "name",
+  "slug",
+  "description",
+  "keywords",
+  "aliases",
+  "concepts",
+];
 
 exports.createUnit = async (req, res) => {
   try {

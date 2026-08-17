@@ -1,5 +1,5 @@
 import { useEffect, useState, useRef } from "react";
-import { getSubjects, getUnits, getTopicsByUnit, parsePdf, importPdf } from "../../services/api";
+import { getSubjects, getUnits, getTopicsByUnit, parsePdf, importPdf, createClassificationFeedback } from "../../services/api";
 import "./PdfImport.css";
 
 export default function PdfImport() {
@@ -151,6 +151,9 @@ export default function PdfImport() {
         classificationLabel: q.classificationLabel || "LOW",
         needsManualReview: q.needsManualReview !== false,
         alternatives: q.alternatives || [],
+        // Keep the original prediction so we can detect admin overrides
+        originalSuggestedUnitId: q.suggestedUnitId || "",
+        originalSuggestedTopicId: q.suggestedTopicId || "",
         kept: true,
       }));
       setExtractedQuestions(qList);
@@ -242,6 +245,38 @@ export default function PdfImport() {
       const result = await importPdf(payload);
 
       if (result.success) {
+        // ── Record classification feedback for admin overrides ──
+        // When the admin changed the suggested unit/topic, record the
+        // correction so the classifier can be improved later.
+        try {
+          for (const q of keptQuestions) {
+            const originalUnitId = q.originalSuggestedUnitId;
+            const originalTopicId = q.originalSuggestedTopicId;
+            const finalUnitId = q.suggestedUnitId;
+            const finalTopicId = q.suggestedTopicId;
+
+            // Only record if the admin changed the unit or topic
+            const unitChanged = originalUnitId && finalUnitId && originalUnitId !== finalUnitId;
+            const topicChanged = originalTopicId && finalTopicId && originalTopicId !== finalTopicId;
+            const wasUncertain = q.classificationLabel === "LOW" || q.classificationLabel === "MEDIUM";
+
+            if ((unitChanged || topicChanged || wasUncertain) && finalUnitId) {
+              await createClassificationFeedback({
+                questionText: q.questionText.trim(),
+                predictedUnitId: originalUnitId || null,
+                predictedTopicId: originalTopicId || null,
+                actualUnitId: finalUnitId,
+                actualTopicId: finalTopicId || null,
+                predictedConfidence: q.classificationConfidence != null ? q.classificationConfidence : null,
+                correctedBy: "admin",
+              });
+            }
+          }
+        } catch (feedbackErr) {
+          // Feedback recording is best-effort — never block the import.
+          console.error("Failed to record classification feedback:", feedbackErr.message);
+        }
+
         setImportSummary({
           created: result.created,
           updated: result.updated,

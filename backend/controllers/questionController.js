@@ -45,7 +45,7 @@ const updateUnitQuestionCount = async (unitId) => {
 // ==============================
 exports.getQuestions = async (req, res) => {
   try {
-    const { subjectId, unitId, topicId, year, priority, questionType, search, isActive } = req.query;
+    const { subjectId, unitId, topicId, year, priority, questionType, search, isActive, marks, co, level } = req.query;
 
     // Explicitly validate every filter parameter. Never pass req.query into
     // Mongoose directly — this prevents query-object injection (?year[$ne]=...).
@@ -106,6 +106,29 @@ exports.getQuestions = async (req, res) => {
         return res.status(400).json({ success: false, message: result.error });
       }
       filter.questionType = result.value;
+    }
+
+    if (marks !== undefined) {
+      const result = validateInteger(marks, "marks", 1, 100);
+      if (!result.valid) {
+        return res.status(400).json({ success: false, message: result.error });
+      }
+      filter.marks = result.value;
+    }
+
+    if (co !== undefined) {
+      const result = validateInteger(co, "CO", 1, 10);
+      if (!result.valid) {
+        return res.status(400).json({ success: false, message: result.error });
+      }
+      filter.co = result.value;
+    }
+
+    if (level !== undefined) {
+      if (typeof level !== "string" || !/^K[1-6]$/i.test(level)) {
+        return res.status(400).json({ success: false, message: "Invalid level." });
+      }
+      filter.level = level.toUpperCase();
     }
 
     if (search !== undefined) {

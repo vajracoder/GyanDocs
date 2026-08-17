@@ -1,0 +1,845 @@
+[
+  // ═══════════════════════════════════════════════════════════
+  // OPERATING SYSTEMS (unit-001 to unit-005)
+  // ═══════════════════════════════════════════════════════════
+  {
+    "unitId": "unit-001",
+    "name": "Introduction to Operating Systems",
+    "slug": "introduction-to-operating-systems",
+    "description": "Definition, functions and services of an operating system.",
+    "keywords": ["operating system", "os", "functions of os"],
+    "aliases": ["os", "operating systems"],
+    "concepts": ["system call", "kernel", "user mode", "kernel mode", "process", "memory management"],
+    "isActive": true
+  },
+  {
+    "unitId": "unit-001",
+    "name": "Process States & PCB",
+    "slug": "process-states-pcb",
+    "description": "Process states, state transitions and the Process Control Block.",
+    "keywords": ["process state", "pcb", "process control block", "process states"],
+    "aliases": ["process states", "process transition", "process control block"],
+    "concepts": ["new", "ready", "running", "waiting", "terminated", "context switch", "process"],
+    "isActive": true
+  },
+  {
+    "unitId": "unit-001",
+    "name": "CPU Scheduling Algorithms",
+    "slug": "cpu-scheduling-algorithms",
+    "description": "FCFS, SJF, Round Robin and priority CPU scheduling algorithms.",
+    "keywords": ["cpu scheduling", "fcfs", "sjf", "round robin", "scheduling", "scheduling algorithm"],
+    "aliases": ["scheduling algorithms", "preemptive scheduling", "non-preemptive scheduling"],
+    "concepts": ["waiting time", "turnaround time", "quantum", "priority scheduling", "scheduler", "preemptive", "non-preemptive"],
+    "isActive": true
+  },
+  {
+    "unitId": "unit-001",
+    "name": "Multithreading",
+    "slug": "multithreading",
+    "description": "Multithreading models and benefits of multithreaded programming.",
+    "keywords": ["multithreading", "thread", "threads", "multithreaded"],
+    "aliases": ["multithreaded", "threading"],
+    "concepts": ["single-threaded", "parallelism", "concurrency", "thread pool"],
+    "isActive": true
+  },
+  {
+    "unitId": "unit-002",
+    "name": "Critical Section Problem",
+    "slug": "critical-section-problem",
+    "description": "The critical section problem and its three requirements.",
+    "keywords": ["critical section", "critical section problem", "mutual exclusion"],
+    "aliases": ["critical section problem"],
+    "concepts": ["mutual exclusion", "progress", "bounded waiting", "race condition"],
+    "isActive": true
+  },
+  {
+    "unitId": "unit-002",
+    "name": "Semaphores",
+    "slug": "semaphores",
+    "description": "Binary and counting semaphores for process synchronization.",
+    "keywords": ["semaphore", "binary semaphore", "counting semaphore", "semaphores"],
+    "aliases": ["semaphores"],
+    "concepts": ["producer consumer", "wait", "signal", "p operation", "v operation", "synchronization"],
+    "isActive": true
+  },
+  {
+    "unitId": "unit-002",
+    "name": "Mutex Locks",
+    "slug": "mutex-locks",
+    "description": "Mutex locks and their use in process synchronization.",
+    "keywords": ["mutex", "lock", "locks", "mutex lock"],
+    "aliases": ["mutex lock", "mutexes"],
+    "concepts": ["semaphore", "lock acquisition", "lock release", "mutual exclusion"],
+    "isActive": true
+  },
+  {
+    "unitId": "unit-002",
+    "name": "Producer-Consumer Problem",
+    "slug": "producer-consumer-problem",
+    "description": "The producer-consumer problem and bounded buffer solution.",
+    "keywords": ["producer consumer", "bounded buffer", "producer consumer problem"],
+    "aliases": ["producer-consumer problem"],
+    "concepts": ["buffer", "synchronization", "semaphore", "consumer", "producer"],
+    "isActive": true
+  },
+  {
+    "unitId": "unit-003",
+    "name": "Deadlock",
+    "slug": "deadlock",
+    "description": "Deadlock definition, necessary conditions, prevention and avoidance.",
+    "keywords": ["deadlock", "deadlocks", "deadlock prevention", "deadlock avoidance"],
+    "aliases": ["deadlock prevention", "deadlock avoidance"],
+    "concepts": ["mutual exclusion", "hold and wait", "no preemption", "circular wait"],
+    "isActive": true
+  },
+  {
+    "unitId": "unit-003",
+    "name": "Banker's Algorithm",
+    "slug": "banker-s-algorithm",
+    "description": "Banker's algorithm for deadlock avoidance with safe sequences.",
+    "keywords": ["banker algorithm", "safe sequence", "allocation", "max", "available", "need"],
+    "aliases": ["banker's algorithm"],
+    "concepts": ["deadlock avoidance", "safe state", "need matrix", "resource allocation"],
+    "isActive": true
+  },
+  {
+    "unitId": "unit-003",
+    "name": "Deadlock Detection",
+    "slug": "deadlock-detection",
+    "description": "Deadlock detection algorithms for single and multiple resource instances.",
+    "keywords": ["deadlock detection", "detection algorithm"],
+    "aliases": ["deadlock detection algorithm"],
+    "concepts": ["wait-for graph", "resource allocation", "cycle detection"],
+    "isActive": true
+  },
+  {
+    "unitId": "unit-003",
+    "name": "Deadlock Recovery",
+    "slug": "deadlock-recovery",
+    "description": "Methods to recover from deadlock: process termination and resource preemption.",
+    "keywords": ["deadlock recovery", "process termination", "resource preemption"],
+    "aliases": ["recovery from deadlock"],
+    "concepts": ["rollback", "preemption", "process termination"],
+    "isActive": true
+  },
+  {
+    "unitId": "unit-003",
+    "name": "Resource Allocation Graph",
+    "slug": "resource-allocation-graph",
+    "description": "Resource Allocation Graph (RAG) for deadlock detection.",
+    "keywords": ["resource allocation graph", "rag"],
+    "aliases": ["RAG"],
+    "concepts": ["deadlock detection", "cycle", "request edge", "assignment edge"],
+    "isActive": true
+  },
+  {
+    "unitId": "unit-004",
+    "name": "Paging",
+    "slug": "paging",
+    "description": "Paging technique for memory management and external fragmentation.",
+    "keywords": ["paging", "page", "page table", "frame"],
+    "aliases": ["paging technique"],
+    "concepts": ["external fragmentation", "logical address", "physical address", "frame", "page table"],
+    "isActive": true
+  },
+  {
+    "unitId": "unit-004",
+    "name": "Segmentation",
+    "slug": "segmentation",
+    "description": "Segmentation technique for memory management.",
+    "keywords": ["segmentation", "segment", "segment table"],
+    "aliases": ["segmentation technique"],
+    "concepts": ["paging", "fragmentation", "segment table", "logical address"],
+    "isActive": true
+  },
+  {
+    "unitId": "unit-004",
+    "name": "Virtual Memory",
+    "slug": "virtual-memory",
+    "description": "Virtual memory, demand paging and page faults.",
+    "keywords": ["virtual memory", "demand paging", "page fault"],
+    "aliases": ["virtual memory management"],
+    "concepts": ["page fault", "demand paging", "swap", "page table"],
+    "isActive": true
+  },
+  {
+    "unitId": "unit-004",
+    "name": "Page Replacement Algorithms",
+    "slug": "page-replacement-algorithms",
+    "description": "FIFO, LRU and Optimal page replacement algorithms.",
+    "keywords": ["page replacement", "fifo", "lru", "optimal", "page replacement algorithm"],
+    "aliases": ["page replacement algorithms"],
+    "concepts": ["reference string", "page fault", "belady anomaly", "fifo", "lru", "optimal"],
+    "isActive": true
+  },
+  {
+    "unitId": "unit-005",
+    "name": "File Allocation Methods",
+    "slug": "file-allocation-methods",
+    "description": "Contiguous, linked and indexed file allocation methods.",
+    "keywords": ["file allocation", "contiguous", "linked", "indexed", "file allocation method"],
+    "aliases": ["file allocation methods"],
+    "concepts": ["contiguous allocation", "linked allocation", "indexed allocation", "file system"],
+    "isActive": true
+  },
+  {
+    "unitId": "unit-005",
+    "name": "Disk Scheduling Algorithms",
+    "slug": "disk-scheduling-algorithms",
+    "description": "SCAN, C-SCAN, SSTF and FCFS disk scheduling algorithms.",
+    "keywords": ["disk scheduling", "scan", "c-scan", "sstf", "disk scheduling algorithm"],
+    "aliases": ["disk scheduling algorithms"],
+    "concepts": ["seek time", "fifo", "sstf", "scan", "c-scan", "disk arm"],
+    "isActive": true
+  },
+  {
+    "unitId": "unit-005",
+    "name": "I/O Systems",
+    "slug": "i-o-systems",
+    "description": "Structure of the I/O system and the role of device drivers.",
+    "keywords": ["i/o system", "device driver", "input output", "io system"],
+    "aliases": ["io systems", "i/o systems"],
+    "concepts": ["device driver", "interrupt", "dma", "i/o controller"],
+    "isActive": true
+  },
+
+  // ═══════════════════════════════════════════════════════════
+  // DATABASE MANAGEMENT SYSTEMS (unit-006 to unit-010)
+  // ═══════════════════════════════════════════════════════════
+  {
+    "unitId": "unit-006",
+    "name": "ER Model & Diagrams",
+    "slug": "er-model-diagrams",
+    "description": "Entity-Relationship model, entities, attributes and relationships.",
+    "keywords": ["er diagram", "er model", "entity relationship", "entity", "attribute", "relationship"],
+    "aliases": ["ER diagrams", "entity relationship model"],
+    "concepts": ["entity", "attribute", "relationship", "cardinality", "weak entity", "strong entity"],
+    "isActive": true
+  },
+  {
+    "unitId": "unit-006",
+    "name": "Database Architecture",
+    "slug": "database-architecture",
+    "description": "Three-schema architecture and data independence in DBMS.",
+    "keywords": ["three schema", "architecture", "dbms", "database architecture"],
+    "aliases": ["database architecture", "three-schema architecture"],
+    "concepts": ["external schema", "conceptual schema", "internal schema", "data independence", "logical independence", "physical independence"],
+    "isActive": true
+  },
+  {
+    "unitId": "unit-006",
+    "name": "Keys & Constraints",
+    "slug": "keys-constraints",
+    "description": "Primary, candidate, foreign and super keys with integrity constraints.",
+    "keywords": ["primary key", "candidate key", "foreign key", "super key", "key", "constraint"],
+    "aliases": ["keys", "constraints", "keys and constraints"],
+    "concepts": ["candidate key", "primary key", "foreign key", "super key", "referential integrity", "entity integrity"],
+    "isActive": true
+  },
+  {
+    "unitId": "unit-007",
+    "name": "Relational Algebra",
+    "slug": "relational-algebra",
+    "description": "Fundamental operations of relational algebra.",
+    "keywords": ["relational algebra", "selection", "projection", "join", "relational algebra operation"],
+    "aliases": ["relational algebra operations"],
+    "concepts": ["select", "project", "join", "union", "intersection", "cartesian product", "rename"],
+    "isActive": true
+  },
+  {
+    "unitId": "unit-007",
+    "name": "SQL Queries & Joins",
+    "slug": "sql-queries-joins",
+    "description": "SQL queries with INNER, LEFT and RIGHT joins.",
+    "keywords": ["sql", "join", "inner join", "left join", "right join", "query"],
+    "aliases": ["SQL queries", "joins", "SQL joins"],
+    "concepts": ["select", "from", "where", "inner join", "left join", "right join", "outer join"],
+    "isActive": true
+  },
+  {
+    "unitId": "unit-007",
+    "name": "DDL and DML Commands",
+    "slug": "ddl-and-dml-commands",
+    "description": "DDL, DML, DCL and TCL commands in SQL.",
+    "keywords": ["ddl", "dml", "dcl", "tcl", "create", "insert", "update", "delete"],
+    "aliases": ["DDL commands", "DML commands"],
+    "concepts": ["create", "alter", "drop", "insert", "update", "delete", "select", "grant", "revoke"],
+    "isActive": true
+  },
+  {
+    "unitId": "unit-008",
+    "name": "Functional Dependencies",
+    "slug": "functional-dependencies",
+    "description": "Functional dependency, inference rules and attribute closure.",
+    "keywords": ["functional dependency", "fd", "functional dependencies", "inference rule"],
+    "aliases": ["FDs", "functional dependencies"],
+    "concepts": ["determinant", "dependent", "attribute closure", "Armstrong axioms", "candidate key"],
+    "isActive": true
+  },
+  {
+    "unitId": "unit-008",
+    "name": "Normal Forms (1NF to BCNF)",
+    "slug": "normal-forms-1nf-to-bcnf",
+    "description": "First, second, third normal forms and Boyce-Codd Normal Form.",
+    "keywords": ["1nf", "2nf", "3nf", "bcnf", "normal form", "normalization"],
+    "aliases": ["normal forms", "normalization"],
+    "concepts": ["atomicity", "partial dependency", "transitive dependency", "candidate key", "prime attribute", "non-prime attribute"],
+    "isActive": true
+  },
+  {
+    "unitId": "unit-008",
+    "name": "Decomposition",
+    "slug": "decomposition",
+    "description": "Lossless and lossy decomposition with dependency preservation.",
+    "keywords": ["decomposition", "lossless", "lossy", "dependency preservation"],
+    "aliases": ["lossless decomposition", "lossy decomposition"],
+    "concepts": ["lossless join", "dependency preservation", "normalization", "decompose"],
+    "isActive": true
+  },
+  {
+    "unitId": "unit-009",
+    "name": "ACID Properties",
+    "slug": "acid-properties",
+    "description": "Atomicity, Consistency, Isolation and Durability of transactions.",
+    "keywords": ["acid", "atomicity", "consistency", "isolation", "durability", "transaction"],
+    "aliases": ["ACID properties"],
+    "concepts": ["transaction", "atomicity", "consistency", "isolation", "durability", "commit", "rollback"],
+    "isActive": true
+  },
+  {
+    "unitId": "unit-009",
+    "name": "Concurrency Control",
+    "slug": "concurrency-control",
+    "description": "Two-phase locking, timestamp ordering and concurrency control protocols.",
+    "keywords": ["concurrency control", "two phase locking", "2pl", "timestamp ordering", "lock"],
+    "aliases": ["2PL", "two-phase locking", "concurrency control protocol"],
+    "concepts": ["lock", "shared lock", "exclusive lock", "serializability", "timestamp", "deadlock"],
+    "isActive": true
+  },
+  {
+    "unitId": "unit-009",
+    "name": "Deadlock in Transactions",
+    "slug": "deadlock-in-transactions",
+    "description": "Deadlock in database transactions and methods to handle it.",
+    "keywords": ["deadlock", "transaction deadlock", "deadlock in transactions"],
+    "aliases": ["deadlock in transactions"],
+    "concepts": ["wait-for graph", "timeout", "deadlock prevention", "deadlock detection", "transaction"],
+    "isActive": true
+  },
+  {
+    "unitId": "unit-010",
+    "name": "B+ Tree Indexing",
+    "slug": "b-tree-indexing",
+    "description": "B+ tree index structure and search operations.",
+    "keywords": ["b+ tree", "b tree", "indexing", "index", "b+ tree index"],
+    "aliases": ["B+ tree index", "B-tree"],
+    "concepts": ["search", "insert", "delete", "leaf node", "internal node", "index"],
+    "isActive": true
+  },
+  {
+    "unitId": "unit-010",
+    "name": "Hashing Techniques",
+    "slug": "hashing-techniques",
+    "description": "Static and dynamic hashing techniques for file organization.",
+    "keywords": ["hashing", "hash", "static hashing", "dynamic hashing", "hash table"],
+    "aliases": ["hashing techniques"],
+    "concepts": ["hash function", "collision", "bucket", "static hashing", "dynamic hashing"],
+    "isActive": true
+  },
+
+  // ═══════════════════════════════════════════════════════════
+  // COMPUTER ORGANIZATION & ARCHITECTURE (unit-011 to unit-015)
+  // ═══════════════════════════════════════════════════════════
+  {
+    "unitId": "unit-011",
+    "name": "Von Neumann Architecture",
+    "slug": "von-neumann-architecture",
+    "description": "Von Neumann architecture with CPU, memory and I/O.",
+    "keywords": ["von neumann", "architecture", "von neumann architecture"],
+    "aliases": ["von neumann architecture"],
+    "concepts": ["cpu", "memory", "input", "output", "stored program", "control unit"],
+    "isActive": true
+  },
+  {
+    "unitId": "unit-011",
+    "name": "Register Organization",
+    "slug": "register-organization",
+    "description": "General register organization of a CPU.",
+    "keywords": ["register", "registers", "cpu register", "register organization"],
+    "aliases": ["register organization"],
+    "concepts": ["general purpose register", "accumulator", "instruction register", "program counter"],
+    "isActive": true
+  },
+  {
+    "unitId": "unit-011",
+    "name": "Instruction Cycle",
+    "slug": "instruction-cycle",
+    "description": "Fetch-decode-execute cycle of the CPU.",
+    "keywords": ["instruction cycle", "fetch", "decode", "execute", "fetch decode execute"],
+    "aliases": ["fetch-decode-execute cycle"],
+    "concepts": ["fetch", "decode", "execute", "interrupt", "instruction register"],
+    "isActive": true
+  },
+  {
+    "unitId": "unit-012",
+    "name": "Addressing Modes",
+    "slug": "addressing-modes",
+    "description": "Different addressing modes with examples.",
+    "keywords": ["addressing mode", "addressing modes"],
+    "aliases": ["addressing modes"],
+    "concepts": ["immediate", "direct", "indirect", "register", "indexed", "relative"],
+    "isActive": true
+  },
+  {
+    "unitId": "unit-012",
+    "name": "RISC vs CISC",
+    "slug": "risc-vs-cisc",
+    "description": "Comparison of RISC and CISC architectures.",
+    "keywords": ["risc", "cisc", "risc vs cisc"],
+    "aliases": ["RISC vs CISC"],
+    "concepts": ["instruction set", "pipelining", "complex instruction", "reduced instruction", "addressing mode"],
+    "isActive": true
+  },
+  {
+    "unitId": "unit-013",
+    "name": "Cache Memory",
+    "slug": "cache-memory",
+    "description": "Cache memory and its role in improving system performance.",
+    "keywords": ["cache", "cache memory"],
+    "aliases": ["cache memory"],
+    "concepts": ["hit", "miss", "performance", "memory hierarchy", "cache line"],
+    "isActive": true
+  },
+  {
+    "unitId": "unit-013",
+    "name": "Cache Mapping Techniques",
+    "slug": "cache-mapping-techniques",
+    "description": "Direct, associative and set-associative cache mapping.",
+    "keywords": ["cache mapping", "direct mapping", "associative", "set associative", "cache mapping technique"],
+    "aliases": ["cache mapping techniques"],
+    "concepts": ["direct mapping", "associative mapping", "set-associative mapping", "cache line", "tag"],
+    "isActive": true
+  },
+  {
+    "unitId": "unit-014",
+    "name": "Interrupt Handling",
+    "slug": "interrupt-handling",
+    "description": "Interrupt handling mechanism in a computer system.",
+    "keywords": ["interrupt", "interrupt handling", "interrupt mechanism"],
+    "aliases": ["interrupts", "interrupt mechanism"],
+    "concepts": ["interrupt vector", "interrupt service routine", "priority", "maskable interrupt"],
+    "isActive": true
+  },
+  {
+    "unitId": "unit-014",
+    "name": "DMA",
+    "slug": "dma",
+    "description": "Direct Memory Access and data transfer efficiency.",
+    "keywords": ["dma", "direct memory access"],
+    "aliases": ["DMA"],
+    "concepts": ["programmed i/o", "dma controller", "data transfer", "interrupt"],
+    "isActive": true
+  },
+  {
+    "unitId": "unit-015",
+    "name": "Instruction Pipelining",
+    "slug": "instruction-pipelining",
+    "description": "Instruction pipelining concept and stages.",
+    "keywords": ["pipelining", "pipeline", "instruction pipeline", "instruction pipelining"],
+    "aliases": ["instruction pipelining"],
+    "concepts": ["fetch", "decode", "execute", "writeback", "throughput", "pipeline stage"],
+    "isActive": true
+  },
+  {
+    "unitId": "unit-015",
+    "name": "Pipeline Hazards",
+    "slug": "pipeline-hazards",
+    "description": "Structural, data and control hazards in pipelining.",
+    "keywords": ["pipeline hazard", "structural hazard", "data hazard", "control hazard", "hazards"],
+    "aliases": ["pipeline hazards"],
+    "concepts": ["structural hazard", "data hazard", "control hazard", "stall", "forwarding"],
+    "isActive": true
+  },
+
+  // ═══════════════════════════════════════════════════════════
+  // COMPILER DESIGN (unit-016 to unit-020)
+  // ═══════════════════════════════════════════════════════════
+  {
+    "unitId": "unit-016",
+    "name": "Phases of a Compiler",
+    "slug": "phases-of-a-compiler",
+    "description": "Different phases of a compiler from lexical analysis to code generation.",
+    "keywords": ["compiler", "phases", "compiler phases", "phases of compiler"],
+    "aliases": ["compiler phases"],
+    "concepts": ["lexical analysis", "syntax analysis", "semantic analysis", "intermediate code", "code optimization", "code generation"],
+    "isActive": true
+  },
+  {
+    "unitId": "unit-016",
+    "name": "Lexical Analysis & Tokens",
+    "slug": "lexical-analysis-tokens",
+    "description": "Lexical analysis, tokens, patterns and lexemes.",
+    "keywords": ["lexical analysis", "token", "lexeme", "pattern", "lexer"],
+    "aliases": ["lexical analyzer", "tokens"],
+    "concepts": ["token", "lexeme", "pattern", "lexer", "regular expression"],
+    "isActive": true
+  },
+  {
+    "unitId": "unit-016",
+    "name": "Finite Automata",
+    "slug": "finite-automata",
+    "description": "DFA, NFA and regular expressions for lexical analysis.",
+    "keywords": ["finite automata", "dfa", "nfa", "regular expression"],
+    "aliases": ["finite automaton", "DFA", "NFA"],
+    "concepts": ["regular expression", "dfa", "nfa", "transition", "state"],
+    "isActive": true
+  },
+  {
+    "unitId": "unit-017",
+    "name": "Top-Down Parsing",
+    "slug": "top-down-parsing",
+    "description": "Recursive descent and predictive top-down parsing.",
+    "keywords": ["top down parsing", "recursive descent", "parser", "top-down"],
+    "aliases": ["top-down parser"],
+    "concepts": ["recursive descent", "backtracking", "predictive parsing", "grammar"],
+    "isActive": true
+  },
+  {
+    "unitId": "unit-017",
+    "name": "LL(1) and LR Parsers",
+    "slug": "ll-1-and-lr-parsers",
+    "description": "LL(1) and LR parsing techniques.",
+    "keywords": ["ll(1)", "lr", "parser", "grammar", "ll 1", "lr parser"],
+    "aliases": ["LL(1) parser", "LR parser"],
+    "concepts": ["lookahead", "parse table", "bottom-up", "top-down", "shift reduce"],
+    "isActive": true
+  },
+  {
+    "unitId": "unit-018",
+    "name": "Syntax Directed Definitions",
+    "slug": "syntax-directed-definitions",
+    "description": "Syntax directed definitions and attribute grammars.",
+    "keywords": ["syntax directed", "sdd", "attribute grammar", "syntax directed definition"],
+    "aliases": ["syntax-directed definitions", "SDD"],
+    "concepts": ["synthesized attribute", "inherited attribute", "semantic action", "parse tree"],
+    "isActive": true
+  },
+  {
+    "unitId": "unit-018",
+    "name": "Intermediate Code Generation",
+    "slug": "intermediate-code-generation",
+    "description": "Three-address code and intermediate representations.",
+    "keywords": ["intermediate code", "three address code", "quadruple", "intermediate code generation"],
+    "aliases": ["intermediate representation"],
+    "concepts": ["three-address code", "quadruple", "triple", "expression", "syntax tree"],
+    "isActive": true
+  },
+  {
+    "unitId": "unit-019",
+    "name": "Local Optimization",
+    "slug": "local-optimization",
+    "description": "Local optimization techniques in compilers.",
+    "keywords": ["local optimization", "optimization", "local optimizations"],
+    "aliases": ["local optimizations"],
+    "concepts": ["constant folding", "algebraic simplification", "dead code", "basic block"],
+    "isActive": true
+  },
+  {
+    "unitId": "unit-019",
+    "name": "Global Optimization",
+    "slug": "global-optimization",
+    "description": "Loop optimization and common subexpression elimination.",
+    "keywords": ["global optimization", "loop optimization", "common subexpression", "global optimizations"],
+    "aliases": ["global optimizations"],
+    "concepts": ["loop unrolling", "common subexpression elimination", "code motion", "data flow"],
+    "isActive": true
+  },
+  {
+    "unitId": "unit-020",
+    "name": "Target Code Generation",
+    "slug": "target-code-generation",
+    "description": "Issues in the design of a code generator.",
+    "keywords": ["code generation", "target code", "code generator", "target code generation"],
+    "aliases": ["target code generation"],
+    "concepts": ["instruction selection", "register allocation", "instruction ordering", "target machine"],
+    "isActive": true
+  },
+  {
+    "unitId": "unit-020",
+    "name": "Register Allocation",
+    "slug": "register-allocation",
+    "description": "Register allocation and assignment strategies.",
+    "keywords": ["register allocation", "register assignment", "register allocation strategy"],
+    "aliases": ["register allocation strategies"],
+    "concepts": ["register spilling", "graph coloring", "interference", "register assignment"],
+    "isActive": true
+  },
+
+  // ═══════════════════════════════════════════════════════════
+  // PYTHON PROGRAMMING (unit-021 to unit-025)
+  // ═══════════════════════════════════════════════════════════
+  {
+    "unitId": "unit-021",
+    "name": "Variables & Data Types",
+    "slug": "variables-data-types",
+    "description": "Python built-in data types and variables.",
+    "keywords": ["data type", "variable", "python", "data types"],
+    "aliases": ["data types", "variables"],
+    "concepts": ["int", "float", "str", "bool", "list", "tuple", "dict", "set"],
+    "isActive": true
+  },
+  {
+    "unitId": "unit-021",
+    "name": "Loops & Conditionals",
+    "slug": "loops-conditionals",
+    "description": "For loops, while loops and conditional statements in Python.",
+    "keywords": ["loop", "for loop", "while", "if", "conditional", "loops"],
+    "aliases": ["loops", "conditionals"],
+    "concepts": ["for", "while", "if", "elif", "else", "break", "continue", "range"],
+    "isActive": true
+  },
+  {
+    "unitId": "unit-021",
+    "name": "Operators in Python",
+    "slug": "operators-in-python",
+    "description": "Arithmetic, relational and logical operators in Python.",
+    "keywords": ["operator", "arithmetic", "relational", "logical", "operators"],
+    "aliases": ["operators"],
+    "concepts": ["arithmetic operator", "relational operator", "logical operator", "assignment operator"],
+    "isActive": true
+  },
+  {
+    "unitId": "unit-022",
+    "name": "Function Arguments",
+    "slug": "function-arguments",
+    "description": "Positional, keyword, default and variable-length arguments.",
+    "keywords": ["function", "argument", "parameter", "keyword argument", "function argument"],
+    "aliases": ["function arguments"],
+    "concepts": ["positional", "keyword", "default", "variable-length", "*args", "**kwargs"],
+    "isActive": true
+  },
+  {
+    "unitId": "unit-022",
+    "name": "Recursion",
+    "slug": "recursion",
+    "description": "Recursive functions in Python.",
+    "keywords": ["recursion", "recursive", "factorial", "recursive function"],
+    "aliases": ["recursive function"],
+    "concepts": ["base case", "recursive case", "stack", "factorial"],
+    "isActive": true
+  },
+  {
+    "unitId": "unit-022",
+    "name": "Python Modules & Packages",
+    "slug": "python-modules-packages",
+    "description": "Modules and packages in Python.",
+    "keywords": ["module", "package", "import", "modules", "packages"],
+    "aliases": ["modules", "packages"],
+    "concepts": ["import", "from", "module", "package", "__init__"],
+    "isActive": true
+  },
+  {
+    "unitId": "unit-023",
+    "name": "List Operations",
+    "slug": "list-operations",
+    "description": "Common list operations in Python.",
+    "keywords": ["list", "append", "insert", "remove", "sort", "list operation"],
+    "aliases": ["list operations"],
+    "concepts": ["append", "insert", "remove", "sort", "indexing", "slicing"],
+    "isActive": true
+  },
+  {
+    "unitId": "unit-023",
+    "name": "Tuples & Sets",
+    "slug": "tuples-sets",
+    "description": "Tuples and sets in Python.",
+    "keywords": ["tuple", "set", "list", "tuples", "sets"],
+    "aliases": ["tuples", "sets"],
+    "concepts": ["immutable", "mutable", "unordered", "unique", "tuple", "set"],
+    "isActive": true
+  },
+  {
+    "unitId": "unit-023",
+    "name": "Dictionaries",
+    "slug": "dictionaries",
+    "description": "Dictionary data structure in Python.",
+    "keywords": ["dictionary", "dict", "key", "value", "dictionaries"],
+    "aliases": ["dictionaries"],
+    "concepts": ["key-value pair", "get", "items", "keys", "values", "dict"],
+    "isActive": true
+  },
+  {
+    "unitId": "unit-023",
+    "name": "Binary Tree Traversal",
+    "slug": "binary-tree-traversal",
+    "description": "Binary tree and BST implementation with traversals.",
+    "keywords": ["binary tree", "inorder", "preorder", "postorder", "bst", "binary search tree"],
+    "aliases": ["binary search tree", "tree traversal"],
+    "concepts": ["inorder", "preorder", "postorder", "insertion", "search", "node", "binary tree"],
+    "isActive": true
+  },
+  {
+    "unitId": "unit-024",
+    "name": "Classes & Objects",
+    "slug": "classes-objects",
+    "description": "Classes and objects in Python OOP.",
+    "keywords": ["class", "object", "python oop", "classes", "objects"],
+    "aliases": ["classes", "objects"],
+    "concepts": ["constructor", "self", "attribute", "method", "instance", "class"],
+    "isActive": true
+  },
+  {
+    "unitId": "unit-024",
+    "name": "Inheritance",
+    "slug": "inheritance",
+    "description": "Single and multiple inheritance in Python.",
+    "keywords": ["inheritance", "single inheritance", "multiple inheritance", "inheritance in python"],
+    "aliases": ["inheritance in python"],
+    "concepts": ["base class", "derived class", "super", "override", "inheritance"],
+    "isActive": true
+  },
+  {
+    "unitId": "unit-024",
+    "name": "Polymorphism",
+    "slug": "polymorphism",
+    "description": "Polymorphism and method overriding in Python.",
+    "keywords": ["polymorphism", "method overriding", "polymorphism in python"],
+    "aliases": ["polymorphism in python"],
+    "concepts": ["method overriding", "method overloading", "duck typing", "polymorphism"],
+    "isActive": true
+  },
+  {
+    "unitId": "unit-025",
+    "name": "File Read/Write Operations",
+    "slug": "file-read-write-operations",
+    "description": "Reading and writing files in Python.",
+    "keywords": ["file", "read", "write", "open", "close", "file handling"],
+    "aliases": ["file handling", "file operations"],
+    "concepts": ["open", "read", "write", "close", "with", "mode", "file object"],
+    "isActive": true
+  },
+  {
+    "unitId": "unit-025",
+    "name": "Exception Handling",
+    "slug": "exception-handling",
+    "description": "Try, except, else and finally blocks in Python.",
+    "keywords": ["exception", "try", "except", "finally", "raise", "exception handling"],
+    "aliases": ["exception handling"],
+    "concepts": ["try", "except", "else", "finally", "raise", "error", "exception"],
+    "isActive": true
+  },
+
+  // ═══════════════════════════════════════════════════════════
+  // COMPUTER NETWORKS (unit-026 to unit-030)
+  // ═══════════════════════════════════════════════════════════
+  {
+    "unitId": "unit-026",
+    "name": "OSI Model Layers",
+    "slug": "osi-model-layers",
+    "description": "Seven layers of the OSI model and their functions.",
+    "keywords": ["osi", "layer", "physical", "data link", "network", "transport", "session", "presentation", "application", "osi model"],
+    "aliases": ["OSI model", "OSI layers"],
+    "concepts": ["physical layer", "data link layer", "network layer", "transport layer", "session layer", "presentation layer", "application layer"],
+    "isActive": true
+  },
+  {
+    "unitId": "unit-026",
+    "name": "TCP/IP Model",
+    "slug": "tcp-ip-model",
+    "description": "TCP/IP model and comparison with OSI model.",
+    "keywords": ["tcp/ip", "internet layer", "transport layer", "tcp ip model"],
+    "aliases": ["TCP/IP model"],
+    "concepts": ["network access", "internet", "transport", "application", "osi"],
+    "isActive": true
+  },
+  {
+    "unitId": "unit-026",
+    "name": "Network Topologies",
+    "slug": "network-topologies",
+    "description": "Star, bus, ring and mesh network topologies.",
+    "keywords": ["topology", "star", "bus", "ring", "mesh", "network topology"],
+    "aliases": ["network topologies"],
+    "concepts": ["star topology", "bus topology", "ring topology", "mesh topology"],
+    "isActive": true
+  },
+  {
+    "unitId": "unit-027",
+    "name": "Framing Techniques",
+    "slug": "framing-techniques",
+    "description": "Byte stuffing and bit stuffing framing techniques.",
+    "keywords": ["framing", "byte stuffing", "bit stuffing", "framing technique"],
+    "aliases": ["framing techniques"],
+    "concepts": ["byte stuffing", "bit stuffing", "frame delimiter", "data link layer"],
+    "isActive": true
+  },
+  {
+    "unitId": "unit-027",
+    "name": "Error Detection & Correction",
+    "slug": "error-detection-correction",
+    "description": "CRC, checksum and Hamming code for error detection and correction.",
+    "keywords": ["error detection", "crc", "checksum", "hamming", "error correction"],
+    "aliases": ["error detection and correction"],
+    "concepts": ["crc", "checksum", "parity", "hamming code", "error detection", "error correction"],
+    "isActive": true
+  },
+  {
+    "unitId": "unit-028",
+    "name": "IP Addressing & Subnetting",
+    "slug": "ip-addressing-subnetting",
+    "description": "IP addressing, classes and subnetting.",
+    "keywords": ["ip address", "subnet", "subnetting", "class c", "ip addressing"],
+    "aliases": ["IP addressing", "subnetting"],
+    "concepts": ["ipv4", "subnet mask", "class a", "class b", "class c", "subnet"],
+    "isActive": true
+  },
+  {
+    "unitId": "unit-028",
+    "name": "Routing Algorithms",
+    "slug": "routing-algorithms",
+    "description": "Distance vector and link state routing algorithms.",
+    "keywords": ["routing", "distance vector", "link state", "routing algorithm"],
+    "aliases": ["routing algorithms"],
+    "concepts": ["distance vector", "link state", "router", "hop", "routing table"],
+    "isActive": true
+  },
+  {
+    "unitId": "unit-029",
+    "name": "TCP vs UDP",
+    "slug": "tcp-vs-udp",
+    "description": "Comparison of TCP and UDP transport protocols.",
+    "keywords": ["tcp", "udp", "connection oriented", "connectionless", "tcp vs udp"],
+    "aliases": ["TCP vs UDP"],
+    "concepts": ["reliable", "unreliable", "handshake", "port", "connection oriented", "connectionless"],
+    "isActive": true
+  },
+  {
+    "unitId": "unit-029",
+    "name": "Congestion Control",
+    "slug": "congestion-control",
+    "description": "TCP congestion control techniques including slow start.",
+    "keywords": ["congestion control", "slow start", "tcp", "congestion"],
+    "aliases": ["congestion control techniques"],
+    "concepts": ["slow start", "congestion avoidance", "fast retransmit", "window", "congestion"],
+    "isActive": true
+  },
+  {
+    "unitId": "unit-030",
+    "name": "DNS",
+    "slug": "dns",
+    "description": "Domain Name System and its working.",
+    "keywords": ["dns", "domain name system", "domain", "dns server"],
+    "aliases": ["DNS"],
+    "concepts": ["domain name", "ip address", "resolver", "name server", "dns"],
+    "isActive": true
+  },
+  {
+    "unitId": "unit-030",
+    "name": "HTTP & HTTPS",
+    "slug": "http-https",
+    "description": "HTTP, HTTPS and the role of SSL/TLS.",
+    "keywords": ["http", "https", "ssl", "tls", "http https"],
+    "aliases": ["HTTP", "HTTPS"],
+    "concepts": ["ssl", "tls", "encryption", "request", "response", "http"],
+    "isActive": true
+  }
+]

@@ -63,6 +63,9 @@ const TOPIC_CREATE_ALLOWLIST = [
   "name",
   "slug",
   "description",
+  "keywords",
+  "aliases",
+  "concepts",
 ];
 
 exports.createTopic = async (req, res) => {
@@ -90,7 +93,14 @@ exports.createTopic = async (req, res) => {
 // ==============================
 // UPDATE TOPIC
 // ==============================
-const TOPIC_UPDATE_ALLOWLIST = ["name", "slug", "description"];
+const TOPIC_UPDATE_ALLOWLIST = [
+  "name",
+  "slug",
+  "description",
+  "keywords",
+  "aliases",
+  "concepts",
+];
 
 exports.updateTopic = async (req, res) => {
   try {

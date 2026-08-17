@@ -14,7 +14,7 @@ const { escapeRegex, MAX_SEARCH_LENGTH } = require('../utils/queryValidation');
  */
 exports.searchQuestions = async (req, res) => {
   try {
-    const { q, subjectId, unitId, topicId, year } = req.query;
+    const { q, subjectId, unitId, topicId, year, marks, co, level } = req.query;
 
     const filter = { isActive: true };
 
@@ -50,6 +50,30 @@ exports.searchQuestions = async (req, res) => {
       const y = Number(year);
       if (!isNaN(y) && y > 1900 && y < 2100) {
         filter.years = y;
+      }
+    }
+
+    // ── Marks filter ─────────────────────────────────────────
+    if (marks) {
+      const m = Number(marks);
+      if (!isNaN(m) && m > 0 && m <= 100) {
+        filter.marks = m;
+      }
+    }
+
+    // ── CO filter ────────────────────────────────────────────
+    if (co) {
+      const c = Number(co);
+      if (!isNaN(c) && c >= 1 && c <= 10) {
+        filter.co = c;
+      }
+    }
+
+    // ── Level filter ─────────────────────────────────────────
+    if (level) {
+      const l = String(level).toUpperCase();
+      if (/^K[1-6]$/.test(l)) {
+        filter.level = l;
       }
     }
 

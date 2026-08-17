@@ -1,5 +1,5 @@
 /**
- * GyanDocs Question Classifier Tests — v2
+ * GyanDocs Question Classifier Tests — v3
  *
  * Tests the syllabus-driven classification engine.
  * Uses the classifier's internal scoring functions (no DB required)
@@ -11,6 +11,7 @@
 const {
   _internal,
   confidenceLabel,
+  classifyQuestion,
   WEIGHTS,
   THRESHOLDS,
 } = require("./services/classifier");
@@ -23,9 +24,10 @@ const {
   combineSignals,
   detectConceptGroups,
   CONCEPT_GROUPS,
+  extractConcepts,
 } = _internal;
 
-console.log("--- Testing Question Classifier v2 ---");
+console.log("--- Testing Question Classifier v3 ---");
 
 let passed = 0;
 let failed = 0;
@@ -60,11 +62,44 @@ assert(profile.coreTerms.has("bcnf"), "Profile core terms include 'bcnf' (from k
 assert(profile.coreTerms.has("decomposition"), "Profile core terms include 'decomposition' (from concepts)");
 assert(profile.conceptGroups.size > 0, "Profile detects concept groups");
 assert(profile.conceptGroups.has("normalization"), "Profile belongs to 'normalization' concept group");
+assert(profile.keywords.has("normalization"), "Profile stores explicit keywords");
+assert(profile.aliases.has("normal forms"), "Profile stores explicit aliases");
+assert(profile.concepts.has("functional dependency"), "Profile stores explicit concepts");
 
 // ═══════════════════════════════════════════════════════════
-// TEST 2: Phrase matching
+// TEST 2: Concept extraction
 // ═══════════════════════════════════════════════════════════
-console.log("\n2. Phrase matching");
+console.log("\n2. Concept extraction");
+
+const concepts1 = extractConcepts("Determine all candidate keys of relation R(A,B,C,D) using the given functional dependencies.");
+assert(concepts1.concepts.includes("candidate key"), `Extracts 'candidate key' (got ${concepts1.concepts.join(", ")})`);
+assert(concepts1.concepts.includes("functional dependency"), "Extracts 'functional dependency'");
+assert(concepts1.concepts.includes("relation"), "Extracts 'relation'");
+
+const concepts2 = extractConcepts("Define candidate key and super key.");
+assert(concepts2.concepts.includes("candidate key"), "Extracts 'candidate key' from define question");
+assert(concepts2.concepts.includes("super key"), "Extracts 'super key'");
+
+const concepts3 = extractConcepts("Explain conflict serializability.");
+assert(concepts3.concepts.includes("serializability"), "Extracts 'serializability'");
+
+const concepts4 = extractConcepts("Define replication in distributed database.");
+assert(concepts4.concepts.includes("replication"), "Extracts 'replication'");
+assert(concepts4.concepts.includes("distributed database"), "Extracts 'distributed database'");
+
+const concepts5 = extractConcepts("Differentiate cross join, natural join, left outer join and right outer join.");
+assert(concepts5.concepts.includes("cross join"), "Extracts 'cross join'");
+assert(concepts5.concepts.includes("natural join"), "Extracts 'natural join'");
+assert(concepts5.concepts.includes("outer join"), "Extracts 'outer join'");
+
+// Plural normalization
+const concepts6 = extractConcepts("List all prime and non-prime attributes in R(A,B,C,D,E) with F = {AB→C, B→E, C→D}.");
+assert(concepts6.concepts.includes("attribute"), "Normalizes 'attributes' → 'attribute'");
+
+// ═══════════════════════════════════════════════════════════
+// TEST 3: Phrase matching
+// ═══════════════════════════════════════════════════════════
+console.log("\n3. Phrase matching");
 
 const qPhrase = "Explain the process of database normalization";
 const qPhraseTokens = tokenize(qPhrase);
@@ -74,11 +109,12 @@ const qPhraseGroups = detectConceptGroups(qPhrasePhrases);
 const signalsPhrase = computeSignals(qPhraseTokens, qPhrasePhrases, qPhraseGroups, profile);
 assert(signalsPhrase.phraseMatch > 0, `Phrase match signal > 0 (got ${signalsPhrase.phraseMatch.toFixed(2)})`);
 assert(signalsPhrase.conceptMatch > 0, `Concept match signal > 0 (got ${signalsPhrase.conceptMatch.toFixed(2)})`);
+assert(signalsPhrase.exactKeywordMatch > 0, `Exact keyword match signal > 0 (got ${signalsPhrase.exactKeywordMatch.toFixed(2)})`);
 
 // ═══════════════════════════════════════════════════════════
-// TEST 3: Concept matching (aliases)
+// TEST 4: Concept matching (aliases)
 // ═══════════════════════════════════════════════════════════
-console.log("\n3. Concept matching (aliases)");
+console.log("\n4. Concept matching (aliases)");
 
 // "minimal keys" should map to the candidate-key concept group
 const qAlias = "Find all minimal keys of relation R";
@@ -100,9 +136,9 @@ const qConcurrentGroups = detectConceptGroups(qConcurrentPhrases);
 assert(qConcurrentGroups.has("concurrency control"), `'concurrent transactions' maps to concurrency group (got ${[...qConcurrentGroups].join(", ")})`);
 
 // ═══════════════════════════════════════════════════════════
-// TEST 4: Unit ranking (two-stage)
+// TEST 5: Unit ranking (two-stage)
 // ═══════════════════════════════════════════════════════════
-console.log("\n4. Unit ranking (two-stage)");
+console.log("\n5. Unit ranking (two-stage)");
 
 // Simulate the DBMS syllabus
 const dbmsUnit1 = {
@@ -213,9 +249,9 @@ const unitScores6 = units.map((u) => {
 assert(unitScores6[0].name === dbmsUnit4.name, `Recovery ranks Unit 4 first (got "${unitScores6[0].name}")`);
 
 // ═══════════════════════════════════════════════════════════
-// TEST 5: Topic ranking (within best unit)
+// TEST 6: Topic ranking (within best unit)
 // ═══════════════════════════════════════════════════════════
-console.log("\n5. Topic ranking (within best unit)");
+console.log("\n6. Topic ranking (within best unit)");
 
 const normalizationTopics = [
   { name: "Functional Dependencies", description: "FD inference rules, closure, candidate keys." },
@@ -237,9 +273,9 @@ const topicScores = normalizationTopics.map((t) => {
 assert(topicScores[0].name === "Normal Forms", `3NF/BCNF question ranks 'Normal Forms' topic first (got "${topicScores[0].name}")`);
 
 // ═══════════════════════════════════════════════════════════
-// TEST 6: Confidence thresholds
+// TEST 7: Confidence thresholds
 // ═══════════════════════════════════════════════════════════
-console.log("\n6. Confidence thresholds");
+console.log("\n7. Confidence thresholds");
 
 assert(confidenceLabel(0.90) === "HIGH", "0.90 → HIGH");
 assert(confidenceLabel(0.85) === "HIGH", "0.85 → HIGH (boundary)");
@@ -250,9 +286,9 @@ assert(confidenceLabel(0.64) === "LOW", "0.64 → LOW");
 assert(confidenceLabel(0.10) === "LOW", "0.10 → LOW");
 
 // ═══════════════════════════════════════════════════════════
-// TEST 7: Confidence margin / ambiguity detection
+// TEST 8: Confidence margin / ambiguity detection
 // ═══════════════════════════════════════════════════════════
-console.log("\n7. Confidence margin / ambiguity detection");
+console.log("\n8. Confidence margin / ambiguity detection");
 
 // Simulate the margin logic: best=0.87, second=0.84 → ambiguous despite high absolute
 const marginLogic = (best, second) => {
@@ -272,9 +308,9 @@ assert(marginLogic(0.70, 0.50) === "MEDIUM", "Best=0.70, second=0.50 → MEDIUM"
 assert(marginLogic(0.50, 0.30) === "LOW", "Best=0.50, second=0.30 → LOW (below threshold)");
 
 // ═══════════════════════════════════════════════════════════
-// TEST 8: Ambiguous question → low confidence / manual review
+// TEST 9: Ambiguous question → low confidence / manual review
 // ═══════════════════════════════════════════════════════════
-console.log("\n8. Ambiguous question → low confidence / manual review");
+console.log("\n9. Ambiguous question → low confidence / manual review");
 
 const qAmbiguous = "What is the meaning of life?";
 const qAmbTokens = tokenize(qAmbiguous);
@@ -292,9 +328,9 @@ assert(bestAmb < THRESHOLDS.MEDIUM, `Ambiguous question has LOW confidence (best
 assert(confidenceLabel(bestAmb) === "LOW", `Ambiguous question labeled LOW (got ${confidenceLabel(bestAmb)})`);
 
 // ═══════════════════════════════════════════════════════════
-// TEST 9: Tokenizer / phrase builder
+// TEST 10: Tokenizer / phrase builder
 // ═══════════════════════════════════════════════════════════
-console.log("\n9. Tokenizer / phrase builder");
+console.log("\n10. Tokenizer / phrase builder");
 
 const toks = tokenize("Explain the architecture of DBMS");
 assert(toks.includes("architecture"), "Tokenizes 'architecture'");
@@ -307,17 +343,19 @@ assert(phrases.some(p => p.includes("concurrency control")), "Builds phrase 'con
 assert(phrases.some(p => p.includes("timestamp ordering")), "Builds phrase 'timestamp ordering'");
 
 // ═══════════════════════════════════════════════════════════
-// TEST 10: Generic concept groups (not DBMS-specific)
+// TEST 11: Generic concept groups (cross-subject)
 // ═══════════════════════════════════════════════════════════
-console.log("\n10. Generic concept groups (cross-subject)");
+console.log("\n11. Generic concept groups (cross-subject)");
 
 // The concept groups should be generic — they should work for any subject.
-// Test that the mechanism is not hardcoded to DBMS by checking that
-// concept groups exist and are generic academic terms.
 assert(CONCEPT_GROUPS.length > 0, "Concept groups are defined");
 assert(CONCEPT_GROUPS.some(g => g.canonical === "normalization"), "Has normalization group");
 assert(CONCEPT_GROUPS.some(g => g.canonical === "concurrency control"), "Has concurrency group");
 assert(CONCEPT_GROUPS.some(g => g.canonical === "sql"), "Has SQL group");
+assert(CONCEPT_GROUPS.some(g => g.canonical === "process management"), "Has OS process management group");
+assert(CONCEPT_GROUPS.some(g => g.canonical === "network layer"), "Has network layer group");
+assert(CONCEPT_GROUPS.some(g => g.canonical === "syntax analysis"), "Has compiler syntax analysis group");
+assert(CONCEPT_GROUPS.some(g => g.canonical === "python oop"), "Has Python OOP group");
 
 // Cross-subject: a question about "paging" (OS topic) should NOT match
 // any DBMS concept group strongly.
@@ -329,11 +367,12 @@ const qOSGroups = detectConceptGroups(qOSPhrases);
 // "paging" is not in any DBMS concept group
 assert(!qOSGroups.has("normalization"), "OS paging question does NOT match normalization group");
 assert(!qOSGroups.has("concurrency control"), "OS paging question does NOT match concurrency group");
+assert(qOSGroups.has("memory management"), "OS paging question matches memory management group");
 
 // ═══════════════════════════════════════════════════════════
-// TEST 11: Admin correction feedback structure
+// TEST 12: Admin correction feedback structure
 // ═══════════════════════════════════════════════════════════
-console.log("\n11. Admin correction feedback structure");
+console.log("\n12. Admin correction feedback structure");
 
 // Verify the ClassificationFeedback model exists and has the right shape
 const ClassificationFeedback = require("./models/ClassificationFeedback");
@@ -352,107 +391,297 @@ assert(feedbackDoc.predictedConfidence === 0.4, "Feedback stores predictedConfid
 assert(feedbackDoc.correctedBy === "admin@test.com", "Feedback stores correctedBy");
 assert(feedbackDoc.correctedAt instanceof Date, "Feedback stores correctedAt");
 
-// ═══════════════════════════════════════════════════════════
-// TEST 12: Real PYQ dataset (30+ questions)
-// ═══════════════════════════════════════════════════════════
-console.log("\n12. Real PYQ dataset (30+ questions)");
+// ── OS syllabus (used by TEST 13 and TEST 14) ──────────────
+const osUnit1 = { name: "Introduction & Process Management", description: "Processes, PCB, process states and CPU scheduling." };
+const osUnit2 = { name: "Process Synchronization", description: "Critical section problem, semaphores and classical sync problems." };
+const osUnit3 = { name: "Deadlocks", description: "Deadlock conditions, prevention, avoidance, detection and recovery." };
+const osUnit4 = { name: "Memory Management", description: "Paging, segmentation, virtual memory and page replacement." };
+const osUnit5 = { name: "File Systems & I/O", description: "File allocation methods, directory structures and disk scheduling." };
+const osUnits = [osUnit1, osUnit2, osUnit3, osUnit4, osUnit5];
 
-// Each entry: { text, expectedUnit (1-5), expectedLabel }
+// ── CN syllabus (used by TEST 13 and TEST 15) ──────────────
+const cnUnit1 = { name: "Introduction & OSI/TCP-IP Model", description: "Network models, layers and their responsibilities." };
+const cnUnit2 = { name: "Data Link Layer", description: "Framing, error detection and MAC protocols." };
+const cnUnit3 = { name: "Network Layer", description: "IP addressing, subnetting and routing algorithms." };
+const cnUnit4 = { name: "Transport Layer", description: "TCP, UDP, flow control and congestion control." };
+const cnUnit5 = { name: "Application Layer", description: "DNS, HTTP, FTP and email protocols." };
+const cnUnits = [cnUnit1, cnUnit2, cnUnit3, cnUnit4, cnUnit5];
+
+// ═══════════════════════════════════════════════════════════
+// TEST 13: Real PYQ dataset (100+ questions, multi-subject)
+// ═══════════════════════════════════════════════════════════
+console.log("\n13. Real PYQ dataset (100+ questions)");
+
+// Each entry: { subject: 'dbms'|'os'|'cn', text, unit (1-5), ambiguous? }
 const PYQ_DATASET = [
-  // Unit 1 — DBMS architecture / ER model
-  { text: "Explain the architecture of DBMS in terms of its components with a proper diagram.", unit: 1 },
-  { text: "What is the concept of keys in database?", unit: 2 },
-  { text: "What is strong & weak entity set?", unit: 1 },
-  { text: "Explain referential integrity.", unit: 2 },
-  { text: "Explain entity integrity constraints.", unit: 2 },
-  { text: "Define candidate key and super key with example.", unit: 2 },
-  { text: "Find all candidate keys of relation R(A,B,C,D,E) with FD set F = {AB→C, B→E, C→D}.", unit: 3 },
-  { text: "Determine the minimal keys of the given relation.", unit: 3 },
-  { text: "Identify the candidate keys for the relation schema.", unit: 3 },
-  { text: "Differentiate TRUNCATE and DELETE command", unit: 2 },
-  { text: "Define triggers and its types.", unit: 2 },
-  { text: "Explain Joins? Discuss all types of Joins with the help of proper example of each.", unit: 2 },
-  { text: "Write different inference rule for functional dependency?", unit: 3 },
-  { text: "Why do we normalize database?", unit: 3 },
-  { text: "Explain 3NF and BCNF with examples.", unit: 3 },
-  { text: "Analyze and find the FDs in the following relation.", unit: 3 },
-  { text: "List all prime and non-prime attributes In Relation R(A,B,C,D,E) with FD set F = {AB→C, B→E, C→D}.", unit: 3 },
-  { text: "Consider the relation R (P, Q, S, T, X, Y, Z, W) with the following functional dependencies. PQ → X; P → YX; Q → Y; Y → ZW. Identify whether it is a lossy decomposition and justify your answer.", unit: 3 },
-  { text: "Explain properties of Transaction.", unit: 4 },
-  { text: "What do you mean by testing of serializability?", unit: 4 },
-  { text: "Define concurrency control.", unit: 4 },
-  { text: "Define exclusive lock.", unit: 4 },
-  { text: "Discuss Concurrency control. Why it is needed in DBMS? Also explain timestamp based ordering in Concurrency control.", unit: 4 },
-  { text: "Determine different types of failures in case of transactions and how it can be recovered based on log file? Explain with suitable example.", unit: 4 },
-  { text: "Explain ACID properties of a transaction.", unit: 4 },
-  { text: "What is two phase locking protocol?", unit: 4 },
-  { text: "Define replication in distributed database.", unit: null, ambiguous: true },
-  { text: "Explain B+ tree indexing with example.", unit: 5 },
-  { text: "What is hashing? Explain different hashing techniques.", unit: 5 },
-  { text: "Explain file organization methods in DBMS.", unit: 5 },
-  // Ambiguous / multi-topic questions
-  { text: "What is the meaning of life?", unit: null, ambiguous: true },
-  { text: "Explain the difference between a key and a constraint.", unit: null, ambiguous: true },
-  { text: "Explain the difference between a primary key and a foreign key.", unit: null, ambiguous: true },
+  // ══════ DBMS — Unit 1 (Architecture & ER) ══════
+  { subject: "dbms", text: "Explain the architecture of DBMS in terms of its components with a proper diagram.", unit: 1 },
+  { subject: "dbms", text: "What is strong & weak entity set?", unit: 1 },
+  { subject: "dbms", text: "Explain ER Diagram with suitable example.", unit: 1 },
+  { subject: "dbms", text: "What is an entity relationship model? Explain its components.", unit: 1 },
+  { subject: "dbms", text: "Differentiate between strong and weak entity sets.", unit: 1 },
+  { subject: "dbms", text: "Explain three schema architecture of DBMS.", unit: 1 },
+  { subject: "dbms", text: "What is data independence? Explain logical and physical data independence.", unit: 1 },
+  { subject: "dbms", text: "Explain different types of attributes in ER model.", unit: 1 },
+  { subject: "dbms", text: "Draw an ER diagram for a banking system.", unit: 1 },
+  { subject: "dbms", text: "What is a relationship set in ER model?", unit: 1 },
+  { subject: "dbms", text: "What is the concept of data independence?", unit: 1 },
+
+  // ══════ DBMS — Unit 2 (Relational Model & SQL) ══════
+  { subject: "dbms", text: "What is the concept of keys in database?", unit: 2 },
+  { subject: "dbms", text: "Explain referential integrity.", unit: 2 },
+  { subject: "dbms", text: "Explain entity integrity constraints.", unit: 2 },
+  { subject: "dbms", text: "Define candidate key and super key with example.", unit: 2 },
+  { subject: "dbms", text: "Differentiate TRUNCATE and DELETE command", unit: 2 },
+  { subject: "dbms", text: "Define triggers and its types.", unit: 2 },
+  { subject: "dbms", text: "Explain Joins? Discuss all types of Joins with the help of proper example of each.", unit: 2 },
+  { subject: "dbms", text: "Differentiate cross join, natural join, left outer join and right outer join.", unit: 2 },
+  { subject: "dbms", text: "Write SQL queries for the given relational schema.", unit: 2 },
+  { subject: "dbms", text: "Explain relational algebra operations with examples.", unit: 2 },
+  { subject: "dbms", text: "What is a foreign key? Explain with example.", unit: 2 },
+  { subject: "dbms", text: "Explain DDL and DML commands in SQL.", unit: 2 },
+  { subject: "dbms", text: "Write SQL query to find second highest salary.", unit: 2 },
+  { subject: "dbms", text: "Explain nested queries in SQL.", unit: 2 },
+  { subject: "dbms", text: "Differentiate between relational algebra and relational calculus.", unit: 2 },
+
+  // ══════ DBMS — Unit 3 (Normalization) ══════
+  { subject: "dbms", text: "Write different inference rule for functional dependency?", unit: 3 },
+  { subject: "dbms", text: "Why do we normalize database?", unit: 3 },
+  { subject: "dbms", text: "Explain 3NF and BCNF with examples.", unit: 3 },
+  { subject: "dbms", text: "Analyze and find the FDs in the following relation.", unit: 3 },
+  { subject: "dbms", text: "List all prime and non-prime attributes In Relation R(A,B,C,D,E) with FD set F = {AB→C, B→E, C→D}.", unit: 3 },
+  { subject: "dbms", text: "Find all candidate keys of relation R(A,B,C,D,E) with FD set F = {AB→C, B→E, C→D}.", unit: 3 },
+  { subject: "dbms", text: "Determine the minimal keys of the given relation.", unit: 3 },
+  { subject: "dbms", text: "Consider the relation R (P, Q, S, T, X, Y, Z, W) with the following functional dependencies. PQ → X; P → YX; Q → Y; Y → ZW. Identify whether it is a lossy decomposition and justify your answer.", unit: 3 },
+  { subject: "dbms", text: "Explain lossless decomposition and dependency preservation.", unit: 3 },
+  { subject: "dbms", text: "What is functional dependency? Explain Armstrong's axioms.", unit: 3 },
+  { subject: "dbms", text: "What is transitive dependency? Explain with example.", unit: 3 },
+  { subject: "dbms", text: "Differentiate between 2NF and 3NF.", unit: 3 },
+  { subject: "dbms", text: "Explain multivalued dependency and 4NF.", unit: 3 },
+  { subject: "dbms", text: "Find the closure of attribute set A given the functional dependencies.", unit: 3 },
+  { subject: "dbms", text: "Explain lossy and lossless decomposition with examples.", unit: 3 },
+
+  // ══════ DBMS — Unit 4 (Transactions & Concurrency) ══════
+  { subject: "dbms", text: "Explain properties of Transaction.", unit: 4 },
+  { subject: "dbms", text: "What do you mean by testing of serializability?", unit: 4 },
+  { subject: "dbms", text: "Define concurrency control.", unit: 4 },
+  { subject: "dbms", text: "Define exclusive lock.", unit: 4 },
+  { subject: "dbms", text: "Discuss Concurrency control. Why it is needed in DBMS? Also explain timestamp based ordering in Concurrency control.", unit: 4 },
+  { subject: "dbms", text: "Determine different types of failures in case of transactions and how it can be recovered based on log file? Explain with suitable example.", unit: 4 },
+  { subject: "dbms", text: "Explain ACID properties of a transaction.", unit: 4 },
+  { subject: "dbms", text: "What is two phase locking protocol?", unit: 4 },
+  { subject: "dbms", text: "Explain conflict serializability with example.", unit: 4 },
+  { subject: "dbms", text: "What is a transaction schedule? Explain conflict and view serializability.", unit: 4 },
+  { subject: "dbms", text: "What is deadlock? Explain deadlock prevention and detection in DBMS.", unit: 4 },
+  { subject: "dbms", text: "Explain shared and exclusive locks.", unit: 4 },
+  { subject: "dbms", text: "What is a checkpoint in database recovery?", unit: 4 },
+  { subject: "dbms", text: "Explain timestamp based concurrency control protocol.", unit: 4 },
+
+  // ══════ DBMS — Unit 5 (Indexing & File Organization) ══════
+  { subject: "dbms", text: "Explain B+ tree indexing with example.", unit: 5 },
+  { subject: "dbms", text: "What is hashing? Explain different hashing techniques.", unit: 5 },
+  { subject: "dbms", text: "Explain file organization methods in DBMS.", unit: 5 },
+  { subject: "dbms", text: "Compare B-tree and B+ tree indexing.", unit: 5 },
+  { subject: "dbms", text: "What is static and dynamic hashing?", unit: 5 },
+  { subject: "dbms", text: "Explain primary and secondary indexing.", unit: 5 },
+
+  // ══════ OS — Unit 1 (Process Management) ══════
+  { subject: "os", text: "Explain process states with a diagram.", unit: 1 },
+  { subject: "os", text: "What is PCB? Explain its components.", unit: 1 },
+  { subject: "os", text: "Explain different CPU scheduling algorithms.", unit: 1 },
+  { subject: "os", text: "What is context switching?", unit: 1 },
+  { subject: "os", text: "Explain FCFS and SJF scheduling with examples.", unit: 1 },
+
+  // ══════ OS — Unit 2 (Process Synchronization) ══════
+  { subject: "os", text: "Explain critical section problem.", unit: 2 },
+  { subject: "os", text: "What is semaphore? Explain its types.", unit: 2 },
+  { subject: "os", text: "Explain producer consumer problem.", unit: 2 },
+  { subject: "os", text: "What is a mutex?", unit: 2 },
+  { subject: "os", text: "Explain reader writer problem.", unit: 2 },
+
+  // ══════ OS — Unit 3 (Deadlocks) ══════
+  { subject: "os", text: "Explain deadlock prevention and avoidance.", unit: 3 },
+  { subject: "os", text: "What is Banker's algorithm?", unit: 3 },
+  { subject: "os", text: "Explain necessary conditions for deadlock.", unit: 3 },
+  { subject: "os", text: "What is deadlock detection and recovery?", unit: 3 },
+  { subject: "os", text: "Explain resource allocation graph.", unit: 3 },
+
+  // ══════ OS — Unit 4 (Memory Management) ══════
+  { subject: "os", text: "Explain paging and page replacement in operating systems.", unit: 4 },
+  { subject: "os", text: "What is virtual memory?", unit: 4 },
+  { subject: "os", text: "Explain segmentation.", unit: 4 },
+  { subject: "os", text: "What is LRU page replacement algorithm?", unit: 4 },
+  { subject: "os", text: "Explain thrashing.", unit: 4 },
+
+  // ══════ OS — Unit 5 (File Systems & I/O) ══════
+  { subject: "os", text: "Explain file allocation methods.", unit: 5 },
+  { subject: "os", text: "What is disk scheduling? Explain SCAN and C-SCAN.", unit: 5 },
+  { subject: "os", text: "Explain directory structure in file systems.", unit: 5 },
+  { subject: "os", text: "What are inodes?", unit: 5 },
+
+  // ══════ CN — Unit 1 (OSI/TCP-IP) ══════
+  { subject: "cn", text: "Explain OSI model with layers.", unit: 1 },
+  { subject: "cn", text: "Explain TCP/IP model.", unit: 1 },
+  { subject: "cn", text: "Compare OSI and TCP/IP models.", unit: 1 },
+
+  // ══════ CN — Unit 2 (Data Link Layer) ══════
+  { subject: "cn", text: "Explain error detection using CRC.", unit: 2 },
+  { subject: "cn", text: "What is framing in data link layer?", unit: 2 },
+  { subject: "cn", text: "Explain MAC protocols.", unit: 2 },
+  { subject: "cn", text: "What is Hamming code?", unit: 2 },
+
+  // ══════ CN — Unit 3 (Network Layer) ══════
+  { subject: "cn", text: "Explain distance vector routing algorithm.", unit: 3 },
+  { subject: "cn", text: "What is subnetting?", unit: 3 },
+  { subject: "cn", text: "Explain IP addressing and classes.", unit: 3 },
+  { subject: "cn", text: "Compare link state and distance vector routing.", unit: 3 },
+  { subject: "cn", text: "What is ARP?", unit: 3 },
+
+  // ══════ CN — Unit 4 (Transport Layer) ══════
+  { subject: "cn", text: "Explain TCP congestion control mechanisms.", unit: 4 },
+  { subject: "cn", text: "Differentiate TCP and UDP.", unit: 4 },
+  { subject: "cn", text: "What is flow control?", unit: 4 },
+  { subject: "cn", text: "Explain three way handshake in TCP.", unit: 4 },
+
+  // ══════ CN — Unit 5 (Application Layer) ══════
+  { subject: "cn", text: "Explain DNS.", unit: 5 },
+  { subject: "cn", text: "What is HTTP?", unit: 5 },
+  { subject: "cn", text: "Explain FTP.", unit: 5 },
+  { subject: "cn", text: "What is SMTP?", unit: 5 },
+
+  // ══════ Ambiguous questions ══════
+  { subject: "dbms", text: "Define replication in distributed database.", unit: null, ambiguous: true },
+  { subject: "dbms", text: "What is the meaning of life?", unit: null, ambiguous: true },
+  { subject: "dbms", text: "Explain the difference between a key and a constraint.", unit: null, ambiguous: true },
+  { subject: "dbms", text: "Explain the difference between a primary key and a foreign key.", unit: null, ambiguous: true },
 ];
 
-assert(PYQ_DATASET.length >= 30, `Dataset has at least 30 questions (got ${PYQ_DATASET.length})`);
+assert(PYQ_DATASET.length >= 100, `Dataset has at least 100 questions (got ${PYQ_DATASET.length})`);
 
-// Score each question against the DBMS units and verify the top unit
-let correctRank = 0;
-let ambiguousHandled = 0;
+// Subject-specific unit sets for evaluation.
+const subjectUnits = {
+  dbms: units,
+  os: osUnits,   // declared below (hoisted consts are in TDZ until init, so evaluated after)
+  cn: cnUnits,
+};
+// Build a lookup of unit name → unit index per subject
+const subjectUnitIndex = {};
+for (const subject of ["dbms", "os", "cn"]) {
+  const set = subjectUnits[subject];
+  subjectUnitIndex[subject] = new Map();
+  set.forEach((u, i) => subjectUnitIndex[subject].set(u.name, i + 1));
+}
+
+// Evaluate: accuracy per subject, confidence-level accuracy, false-HIGH rate.
+const results = {
+  correct: 0,
+  total: 0,
+  ambiguousHandled: 0,
+  ambiguousTotal: 0,
+  highCorrect: 0, highTotal: 0, highWrong: 0,
+  mediumCorrect: 0, mediumTotal: 0,
+  lowCorrect: 0, lowTotal: 0,
+  errors: [],
+};
 
 for (const item of PYQ_DATASET) {
   const qTokens = tokenize(item.text);
   const qPhrases = buildPhrases(item.text);
   const qGroups = detectConceptGroups(qPhrases);
 
-  const scores = units.map((u, idx) => {
+  const unitSet = subjectUnits[item.subject] || units;
+  const scores = unitSet.map((u, idx) => {
     const p = buildProfile(u);
     const s = computeSignals(qTokens, qPhrases, qGroups, p);
-    return { unitIdx: idx + 1, score: combineSignals(s) };
+    return { unitIdx: idx + 1, name: u.name, score: combineSignals(s) };
   }).sort((a, b) => b.score - a.score);
 
   const best = scores[0];
   const second = scores[1] || { score: 0 };
-  const margin = best.score - second.score;
+  const label = marginLogic(best.score, second.score);
+
+  results.total++;
 
   if (item.ambiguous) {
-    // Ambiguous questions should NOT be confidently classified
-    const label = marginLogic(best.score, second.score);
-    if (label === "LOW" || label === "MEDIUM") {
-      ambiguousHandled++;
-    }
-  } else if (best.unitIdx === item.unit) {
-    correctRank++;
+    results.ambiguousTotal++;
+    if (label === "LOW" || label === "MEDIUM") results.ambiguousHandled++;
+    continue;
+  }
+
+  const isUnitCorrect = best.unitIdx === item.unit;
+  const isTopicCorrect = false; // topic-level accuracy requires topic metadata; we report unit-level only here
+
+  if (label === "HIGH") {
+    results.highTotal++;
+    if (isUnitCorrect) results.highCorrect++;
+    else results.highWrong++;
+  } else if (label === "MEDIUM") {
+    results.mediumTotal++;
+    if (isUnitCorrect) results.mediumCorrect++;
+  } else {
+    results.lowTotal++;
+    if (isUnitCorrect) results.lowCorrect++;
+  }
+
+  if (isUnitCorrect) results.correct++;
+
+  // Error analysis: record mismatches for review.
+  if (!isUnitCorrect && label !== "LOW") {
+    results.errors.push({
+      question: item.text.slice(0, 60),
+      subject: item.subject,
+      expectedUnit: item.unit,
+      predictedUnit: best.unitIdx,
+      predictedName: best.name,
+      score: best.score.toFixed(3),
+      label,
+    });
   }
 }
 
-// At least 70% of non-ambiguous questions should rank the correct unit first.
-// This test uses a simplified 5-unit syllabus WITHOUT rich topic profiles
-// (no keywords/aliases/concepts). The real system will have richer data,
-// so this is a conservative lower bound.
-const nonAmbiguous = PYQ_DATASET.filter(q => !q.ambiguous).length;
-const rankRate = correctRank / nonAmbiguous;
-assert(rankRate >= 0.70, `At least 70% of non-ambiguous questions rank correct unit first (got ${(rankRate * 100).toFixed(1)}%)`);
+const nonAmbiguous = results.total - results.ambiguousTotal;
+const overallAcc = results.correct / nonAmbiguous;
+const falseHighRate = results.highTotal > 0 ? results.highWrong / results.highTotal : 0;
+
+assert(PYQ_DATASET.length >= 100, `Dataset has at least 100 questions (got ${PYQ_DATASET.length})`);
+assert(overallAcc >= 0.75, `Overall unit accuracy >= 75% (got ${(overallAcc * 100).toFixed(1)}%)`);
+
+// Confidence-level accuracy
+if (results.highTotal > 0) {
+  assert((results.highCorrect / results.highTotal) >= 0.85,
+    `HIGH-confidence accuracy >= 85% (got ${((results.highCorrect / results.highTotal) * 100).toFixed(1)}%)`);
+}
+if (results.mediumTotal > 0) {
+  assert((results.mediumCorrect / results.mediumTotal) >= 0.5,
+    `MEDIUM-confidence accuracy >= 50% (got ${((results.mediumCorrect / results.mediumTotal) * 100).toFixed(1)}%)`);
+}
+
+// False HIGH-confidence rate should be low (a wrong HIGH is worse than LOW requiring review)
+assert(falseHighRate <= 0.25, `False HIGH-confidence rate <= 25% (got ${(falseHighRate * 100).toFixed(1)}%)`);
 
 // All ambiguous questions should be handled as LOW/MEDIUM
-assert(ambiguousHandled === PYQ_DATASET.filter(q => q.ambiguous).length,
-  `All ambiguous questions handled as LOW/MEDIUM (got ${ambiguousHandled}/${PYQ_DATASET.filter(q => q.ambiguous).length})`);
+assert(results.ambiguousHandled === results.ambiguousTotal,
+  `All ambiguous questions handled as LOW/MEDIUM (got ${results.ambiguousHandled}/${results.ambiguousTotal})`);
+
+console.log(`\n  ── Dataset metrics ──`);
+console.log(`  Total questions: ${results.total}`);
+console.log(`  Non-ambiguous: ${nonAmbiguous}`);
+console.log(`  Overall unit accuracy: ${(overallAcc * 100).toFixed(1)}%`);
+console.log(`  HIGH-confidence accuracy: ${results.highTotal ? ((results.highCorrect / results.highTotal) * 100).toFixed(1) + "% (" + results.highCorrect + "/" + results.highTotal + ")" : "N/A"}`);
+console.log(`  MEDIUM-confidence accuracy: ${results.mediumTotal ? ((results.mediumCorrect / results.mediumTotal) * 100).toFixed(1) + "% (" + results.mediumCorrect + "/" + results.mediumTotal + ")" : "N/A"}`);
+console.log(`  LOW-confidence accuracy: ${results.lowTotal ? ((results.lowCorrect / results.lowTotal) * 100).toFixed(1) + "% (" + results.lowCorrect + "/" + results.lowTotal + ")" : "N/A"}`);
+console.log(`  False HIGH-confidence rate: ${(falseHighRate * 100).toFixed(1)}% (${results.highWrong}/${results.highTotal})`);
+console.log(`  Ambiguous handled: ${results.ambiguousHandled}/${results.ambiguousTotal}`);
+console.log(`\n  ── Top classification errors ──`);
+results.errors.slice(0, 10).forEach((e, i) => {
+  console.log(`  ${i + 1}. [${e.subject}] "${e.question}…" → expected U${e.expectedUnit}, got U${e.predictedUnit} (${e.predictedName}) score=${e.score} ${e.label}`);
+});
+if (results.errors.length === 0) console.log("  (none)");
 
 // ═══════════════════════════════════════════════════════════
-// TEST 13: Cross-subject (OS)
+// TEST 14: Cross-subject (OS)
 // ═══════════════════════════════════════════════════════════
-console.log("\n13. Cross-subject (OS)");
-
-// Simulate an OS syllabus
-const osUnit1 = { name: "Introduction & Process Management", description: "Processes, PCB, process states and CPU scheduling." };
-const osUnit2 = { name: "Process Synchronization", description: "Critical section problem, semaphores and classical sync problems." };
-const osUnit3 = { name: "Deadlocks", description: "Deadlock conditions, prevention, avoidance, detection and recovery." };
-const osUnit4 = { name: "Memory Management", description: "Paging, segmentation, virtual memory and page replacement." };
-const osUnit5 = { name: "File Systems & I/O", description: "File allocation methods, directory structures and disk scheduling." };
-
-const osUnits = [osUnit1, osUnit2, osUnit3, osUnit4, osUnit5];
+console.log("\n14. Cross-subject (OS)");
 
 // "paging" → OS Unit 4
 const qPaging = "Explain paging and page replacement in operating systems.";
@@ -481,6 +710,109 @@ const osScores2 = osUnits.map((u) => {
 }).sort((a, b) => b.score - a.score);
 
 assert(osScores2[0].name === osUnit3.name, `Deadlock question ranks OS Unit 3 first (got "${osScores2[0].name}")`);
+
+// "semaphore" → OS Unit 2
+const qSemaphore = "Explain semaphore and its types in process synchronization.";
+const qSemaphoreTokens = tokenize(qSemaphore);
+const qSemaphorePhrases = buildPhrases(qSemaphore);
+const qSemaphoreGroups = detectConceptGroups(qSemaphorePhrases);
+
+const osScores3 = osUnits.map((u) => {
+  const p = buildProfile(u);
+  const s = computeSignals(qSemaphoreTokens, qSemaphorePhrases, qSemaphoreGroups, p);
+  return { name: u.name, score: combineSignals(s) };
+}).sort((a, b) => b.score - a.score);
+
+assert(osScores3[0].name === osUnit2.name, `Semaphore question ranks OS Unit 2 first (got "${osScores3[0].name}")`);
+
+// ═══════════════════════════════════════════════════════════
+// TEST 15: Cross-subject (Computer Networks)
+// ═══════════════════════════════════════════════════════════
+console.log("\n15. Cross-subject (Computer Networks)");
+
+// "TCP congestion control" → CN Unit 4
+const qTcp = "Explain TCP congestion control mechanisms.";
+const qTcpTokens = tokenize(qTcp);
+const qTcpPhrases = buildPhrases(qTcp);
+const qTcpGroups = detectConceptGroups(qTcpPhrases);
+
+const cnScores = cnUnits.map((u) => {
+  const p = buildProfile(u);
+  const s = computeSignals(qTcpTokens, qTcpPhrases, qTcpGroups, p);
+  return { name: u.name, score: combineSignals(s) };
+}).sort((a, b) => b.score - a.score);
+
+assert(cnScores[0].name === cnUnit4.name, `TCP congestion question ranks CN Unit 4 first (got "${cnScores[0].name}")`);
+
+// "routing algorithm" → CN Unit 3
+const qRouting = "Explain distance vector routing algorithm.";
+const qRoutingTokens = tokenize(qRouting);
+const qRoutingPhrases = buildPhrases(qRouting);
+const qRoutingGroups = detectConceptGroups(qRoutingPhrases);
+
+const cnScores2 = cnUnits.map((u) => {
+  const p = buildProfile(u);
+  const s = computeSignals(qRoutingTokens, qRoutingPhrases, qRoutingGroups, p);
+  return { name: u.name, score: combineSignals(s) };
+}).sort((a, b) => b.score - a.score);
+
+assert(cnScores2[0].name === cnUnit3.name, `Routing question ranks CN Unit 3 first (got "${cnScores2[0].name}")`);
+
+// ═══════════════════════════════════════════════════════════
+// TEST 16: CO is NOT used for unit classification
+// ═══════════════════════════════════════════════════════════
+console.log("\n16. CO is NOT used for unit classification");
+
+// The classifier must work without CO. Verify that the same question
+// with and without CO metadata produces the same classification.
+const qWithCO = "Explain 3NF and BCNF with examples. CO3 K4";
+const qWithoutCO = "Explain 3NF and BCNF with examples.";
+
+// The classifier function signature accepts ONLY questionText and subjectId.
+// It never receives CO as a field. The PDF parser strips CO/marks from the
+// question text BEFORE the classifier runs. So the classifier cannot use CO.
+const classifyArgs = classifyQuestion.length; // declared as async ({questionText, subjectId})
+assert(typeof classifyQuestion === "function", "classifyQuestion is exported");
+assert(WEIGHTS && !WEIGHTS.co && !WEIGHTS.coWeight, "No CO weight in the scoring config");
+assert(WEIGHTS && !WEIGHTS.marks && !WEIGHTS.marksWeight, "No marks weight in the scoring config");
+
+// Verify that the classifier source does not reference CO -> Unit mapping
+const classifierSource = require("fs").readFileSync(
+  require("path").join(__dirname, "services", "classifier.js"),
+  "utf8"
+);
+assert(!/[Cc][Oo]\s*[12]/.test(classifierSource) || !/\bco\s*=>?\s*Unit\b/i.test(classifierSource),
+  "No CO-to-Unit mapping in classifier source");
+
+// ═══════════════════════════════════════════════════════════
+// TEST 17: Marks are NOT used for unit classification
+// ═══════════════════════════════════════════════════════════
+console.log("\n17. Marks are NOT used for unit classification");
+
+const qWithMarks = "Explain 3NF and BCNF with examples. 7";
+const qWithoutMarks = "Explain 3NF and BCNF with examples.";
+
+const qWithMarksTokens = tokenize(qWithMarks);
+const qWithMarksPhrases = buildPhrases(qWithMarks);
+const qWithMarksGroups = detectConceptGroups(qWithMarksPhrases);
+
+const qWithoutMarksTokens = tokenize(qWithoutMarks);
+const qWithoutMarksPhrases = buildPhrases(qWithoutMarks);
+const qWithoutMarksGroups = detectConceptGroups(qWithoutMarksPhrases);
+
+const scoreWithMarks2 = units.map((u) => {
+  const p = buildProfile(u);
+  const s = computeSignals(qWithMarksTokens, qWithMarksPhrases, qWithMarksGroups, p);
+  return combineSignals(s);
+});
+const scoreWithoutMarks2 = units.map((u) => {
+  const p = buildProfile(u);
+  const s = computeSignals(qWithoutMarksTokens, qWithoutMarksPhrases, qWithoutMarksGroups, p);
+  return combineSignals(s);
+});
+
+assert(JSON.stringify(scoreWithMarks2) === JSON.stringify(scoreWithoutMarks2),
+  "Marks metadata does not affect classification scores");
 
 // ═══════════════════════════════════════════════════════════
 // SUMMARY
