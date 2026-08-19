@@ -762,8 +762,20 @@ const classifyQuestion = async ({ questionText, subjectId }) => {
   }
 
   // ── Stage 1: Rank Units ──────────────────────────────────
+  // Enrich each Unit profile with its Topics' aggregated keywords / aliases /
+  // concepts so unit ranking is syllabus-aware (unit.name + unit.description
+  // alone is too sparse). The existing buildProfile/computeSignals/combineSignals
+  // pipeline is reused unchanged — only the profile input is enriched.
   const unitScores = units.map((unit) => {
-    const profile = buildProfile(unit);
+    const unitTopics = topics.filter((t) => t.unitId.toString() === unit._id.toString());
+    const aggregate = {
+      name: unit.name,
+      description: unit.description,
+      keywords: unitTopics.flatMap((t) => (Array.isArray(t.keywords) ? t.keywords : [])),
+      aliases: unitTopics.flatMap((t) => (Array.isArray(t.aliases) ? t.aliases : [])),
+      concepts: unitTopics.flatMap((t) => (Array.isArray(t.concepts) ? t.concepts : [])),
+    };
+    const profile = buildProfile(aggregate);
     const signals = computeSignals(questionTokens, questionPhrases, questionConceptGroups, profile, specificityMap);
     return {
       unit,
